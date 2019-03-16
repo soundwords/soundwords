@@ -53,14 +53,14 @@ namespace SoundWords.Services
 
     [Route("/Recording/Speaker/{Name}")]
     [EscapedFragment]
-    public class SpeakerDto : IReturn<SpeakerResponse>, IHaveEscapedFragment
+    public class SpeakerDetails : IReturn<SpeakerDetailsResponse>, IHaveEscapedFragment
     {
         public string Name { get; set; }
         public string Album { get; set; }
         public string EscapedFragment { get; set; }
     }
 
-    public class SpeakerResponse
+    public class SpeakerDetailsResponse
     {
         public string Uid { get; set; }
         public string Speaker { get; set; }
@@ -212,7 +212,7 @@ namespace SoundWords.Services
         //    return this.Redirect("/Recording");
         //}
 
-        public object Get(SpeakerDto speaker)
+        public object Get(SpeakerDetails speaker)
         {
             if (speaker.EscapedFragment == null && !Request.RawUrl.IsNormalizedUrl())
             {
@@ -294,7 +294,7 @@ namespace SoundWords.Services
                                                                                   }).ToList()
                             }).ToList();
 
-                return new SpeakerResponse
+                return new SpeakerDetailsResponse
                 {
                     Uid = dbSpeaker.Uid,
                     Speaker = speaker.Name,

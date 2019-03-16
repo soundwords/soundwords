@@ -1,4 +1,4 @@
-﻿@model SpeakerResponse
+﻿@model SpeakerDetailsResponse
 @{
     ViewBag.Title = Model.Speaker;
 }
@@ -388,9 +388,9 @@
 
         ushort? oldest = Db.Scalar<ushort?>(Db.From<DbRecording>().Where(r => r.Year != null).Select(r => Sql.Min(r.Year)));
         openGraphMetaData.Description = "På sunneord.no kan du lytte til bibelundervisning fra perioden mellom {0} og i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;".Fmt(oldest);
-        SpeakerDto requestDto = (SpeakerDto)Request.Dto;
+        SpeakerDetails request = (SpeakerDetails)Request.Dto;
 
-        string normalizedUrl = Request.ToFullUrl(new SpeakerDto { Name = requestDto.Name });
+        string normalizedUrl = Request.ToFullUrl(new SpeakerDetails { Name = request.Name });
         openGraphMetaData.Url = normalizedUrl;
 
         AlbumInfo selectedAlbum = Model.SelectedAlbum;

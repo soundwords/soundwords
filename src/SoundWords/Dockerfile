@@ -15,7 +15,7 @@ RUN dotnet build SoundWords.csproj -c Release -o /app
 
 FROM node AS node
 WORKDIR /src
-COPY src/SoundWords/bower.json .
+COPY SoundWords/bower.json .
 RUN npm install -g bower
 RUN bower install
 

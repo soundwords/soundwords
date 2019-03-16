@@ -13,7 +13,14 @@ COPY --from=servicestack /ServiceStack /lib/ServiceStack
 WORKDIR /src/SoundWords
 RUN dotnet build SoundWords.csproj -c Release -o /app
 
+FROM node AS node
+WORKDIR /src
+COPY src/SoundWords/bower.json .
+RUN npm install -g bower
+RUN bower install
+
 FROM build AS publish
+COPY --from=node /src/bower_components /src/SoundWords/wwwroot/lib
 RUN dotnet publish SoundWords.csproj -c Release -o /app
 
 FROM base AS final

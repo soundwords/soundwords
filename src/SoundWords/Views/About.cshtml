@@ -3,34 +3,7 @@
     ViewBag.Title = "About";
 }
 
-<h1>Sunne ord</h1>
-<h2>Formål</h2>
-Sunne ord skal gjøre bibelundervisning tilgjengelig via egnede medier, for eksempel Internett, CDer etc.
-
-<h2>Verdigrunnlag og prinsipper</h2>
-<ul>
-    <li>Sunne ords verdigrunnlag og prinsipper defineres av Bibelens kanoniske bøker, bestående av det gamle og det nye testamentet, heretter kalt Bibelen.</li>
-    <li>Bibelen har fullstendig og overordnet autoritet til å bedømme og bestemme over liv, tale og tanke. Den er i sin helhet gitt av Gud.</li>
-    <li>Bibelens bøker er feilfrie i originalmanuskriptene.</li>
-    <li>All bibelundervisning som gjøres tilgjengelig av Sunne ord må være i samsvar med Bibelen. Den som underviser eller deltar i Sunne ords arbeid må på samme måte ha en livsførsel som er i samsvar med Bibelen.</li>
-    <li>Bibelen skal kunne tolkes fritt og tale fritt, uten konfesjonelle eller andre bindinger.</li>
-</ul>
-
-<h2>Organisatorisk tilknytning</h2>
-Sunne ord er en frittstående forening uten tilknytning til kirkesamfunn eller organisasjoner.
-
-<h2>Styre</h2>
-Styret i Sunne ord består av <a href="mailto:david@sunneord.no">David A. Sjøen</a> og <a href="mailto:per@sunneord.no">Per Langåker</a>.
-
-<h2>Adresse</h2>
-Foreningen Sunne ord<br />
-v/Per Langåker<br />
-Urvegen 1<br />
-4276 VEDAVÅGEN
-
-<h2>Bestilling</h2>
-
-Alle bibeltimene kan også bestilles på CD. Ta kontakt med Per Langåker på tlf. 926 11 988 for mer informasjon.
+@Html.RenderMarkdown(ResolveService<IPageTool>().Get("About"))
 
 @section Sidebar
     {

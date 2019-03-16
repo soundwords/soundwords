@@ -25,6 +25,9 @@ RUN dotnet restore ServiceStack/src/ServiceStack.Server/ServiceStack.Server.cspr
 COPY src/ServiceStack/src/ServiceStack.Mvc/ServiceStack.Mvc.csproj ServiceStack/src/ServiceStack.Mvc/
 RUN dotnet restore ServiceStack/src/ServiceStack.Mvc/ServiceStack.Mvc.csproj
 
+COPY src/ServiceStack/src/ServiceStack.Common/ServiceStack.Common.csproj ServiceStack/src/ServiceStack.Common/
+RUN dotnet restore ServiceStack/src/ServiceStack.Common/ServiceStack.Common.csproj
+
 COPY src src
 
 RUN dotnet build src/ServiceStack.OrmLite/src/ServiceStack.OrmLite.Sqlite/ServiceStack.OrmLite.Sqlite.csproj -c Release -f netstandard2.0 -o /ServiceStack
@@ -42,6 +45,8 @@ RUN dotnet build src/ServiceStack/src/ServiceStack/ServiceStack.csproj -c Releas
 RUN dotnet build src/ServiceStack/src/ServiceStack.Server/ServiceStack.Server.csproj -c Release -f netstandard2.0 -o /ServiceStack
 
 RUN dotnet build src/ServiceStack/src/ServiceStack.Mvc/ServiceStack.Mvc.csproj -c Release -f netstandard2.0 -o /ServiceStack
+
+RUN dotnet build src/ServiceStack/src/ServiceStack.Common/ServiceStack.Common.csproj -c Release -f netstandard2.0 -o /ServiceStack
 
 FROM alpine
 COPY --from=build /ServiceStack ServiceStack

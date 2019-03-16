@@ -14,5 +14,6 @@ namespace SoundWords
         bool DebugMode { get; }
         string CachePath { get; }
         string SiteUrl { get; }
+        string CustomFolder { get; }
     }
 }

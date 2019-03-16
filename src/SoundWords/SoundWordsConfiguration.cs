@@ -19,7 +19,7 @@ namespace SoundWords
 
         public bool DebugMode => Get("DebugMode", false);
 
-        public string CachePath => Get("CACHE_PATH", "cache");
+        public string CachePath => Get("CACHE_PATH", "/var/cache");
         public string SiteUrl => GetString("SITE_URL");
 
         public SoundWordsConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration) : base(configuration)

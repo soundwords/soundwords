@@ -1,0 +1,30 @@
+﻿@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<fieldset>
+    <legend>Recording</legend>
+
+    <div class="display-label">Speaker</div>
+    <div class="display-field">@Model.Recording.Speaker</div>
+
+    <div class="display-label">Title</div>
+    <div class="display-field">@Model.Recording.Title</div>
+
+    <div class="display-label">Album</div>
+    <div class="display-field">@Model.Recording.Album</div>
+
+    <div class="display-label">Comment</div>
+    <div class="display-field">@Model.Recording.Comment</div>
+
+    <div class="display-label">Year</div>
+    <div class="display-field">@Model.Recording.Year</div>
+</fieldset>
+<p>
+    <a href="/Home/">Back to List</a>
+</p>
+@section styles
+{
+}

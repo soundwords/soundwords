@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutofacContrib.NSubstitute" Version="4.0.99-rc" />
+    <PackageReference Include="FluentAssertions" Version="4.19.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
+    <PackageReference Include="NUnit" Version="3.6.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.7.0" />
+    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SoundWords\SoundWords.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ServiceStack">
+      <HintPath>..\..\lib\ServiceStack\ServiceStack.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Client">
+      <HintPath>..\..\lib\ServiceStack\ServiceStack.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Common">
+      <HintPath>..\..\lib\ServiceStack\ServiceStack.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Interfaces">
+      <HintPath>..\..\lib\ServiceStack\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text">
+      <HintPath>..\..\lib\ServiceStack\ServiceStack.Text.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

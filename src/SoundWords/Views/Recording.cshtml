@@ -1,0 +1,166 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@model RecordingResponse
+@{
+    ViewBag.Title = "Index";
+}
+<h2>
+    Index
+</h2>
+<p>
+    <a class="btn btn-primary btn-default" id="rebuild" href="#">Rebuild from file system</a>
+    <div id="status"></div>
+    <div class="progress">
+        <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+            <span id="progress-text" class="sr-only">0%</span>
+        </div>
+    </div>
+</p>
+<div id="player">
+</div>
+<table>
+    <tr>
+        <th>
+        </th>
+        <th>
+            Speaker
+        </th>
+        <th>
+            Title
+        </th>
+        <th>
+            Album
+        </th>
+        <th>
+            Comment
+        </th>
+        <th>
+            Year
+        </th>
+        <th>
+            CreatedDate
+        </th>
+    </tr>
+    @foreach (var item in Model.Recordings)
+    {
+        <tr>
+            <td>
+                @*                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                    @Html.ActionLink("Details", "Details", new { id = item.RecordingId }) |
+                    @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })|
+                    @Html.ActionLink("Play", "Stream", new { id = item.RecordingId }, new { @class = "audiofile", id = "recording-" + item.RecordingId })|
+                    @Html.ActionLink("Download", "Download", new { id = item.RecordingId })*@
+            </td>
+            <td>
+                
+            </td>
+            <td>
+                @item.Title
+            </td>
+            <td>
+            </td>
+            <td>
+                @item.Comment
+            </td>
+            <td>
+                @item.Year
+            </td>
+            <td>
+                @item.CreatedOn
+            </td>
+        </tr>
+    }
+</table>
+
+@section styles
+{
+}
+@section scripts
+{
+    <environment names="Development">
+        <script src="~/lib/mediaelement/build/mediaelement-and-player.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/lib/mediaelement/build/mediaelement-and-player.min.js"></script>
+    </environment>
+    <script type="text/javascript">
+        $().ready(function () {
+            var activeSub;
+            var source = new EventSource('/event-stream?channel=refresh&t=' + new Date().getTime());
+            $(source).handleServerEvents({
+                handlers: {
+                    onConnect: function (subscription) {
+                        activeSub = subscription;
+                        console.log("Subscribed");
+                    },
+                    onJoin: function (user) {
+                        console.log("Welcome, " + user.displayName);
+                    },
+                    onLeave: function (user) {
+                        console.log(user.displayName + " #" + user.userId + ": has left the building");
+                    },
+                    status: function(message) {
+                        $("#status").html(message.text);
+                        if (message.id === "finished") {
+                            $("#rebuild").removeClass('disabled');
+                        }
+                    },
+                    progress: function (message) {
+                        console.log('Progress ' + message.progress);
+                        var progressPercent = message.progress + '%';
+                        $("#progress-bar").css('width', progressPercent).attr('aria-valuenow', message.progress);
+                        $("#progress-text").html(progressPercent);
+                    },
+                },
+                receivers: {
+                    //... Register any receivers
+                },
+                success: function (selector, msg, json) { // fired after every message
+                    console.log(selector, msg, json);
+                },
+            });
+
+            $("#rebuild").click(function(event) {
+                event.preventDefault();
+
+                $('#rebuild').addClass('disabled');
+
+                $.post('/Recording/Rebuild', { from: activeSub.id }, function() {
+                }).fail(function (e) {
+                    if (e.responseJSON && e.responseJSON.responseStatus)
+                        console.log(e.responseJSON.responseStatus.message);
+                    $("#rebuild").removeClass('disabled');
+                });
+
+ 
+            });
+
+            $('.audiofile').click(function (event) {
+                event.preventDefault();
+
+                var recordingUrl = '/Stream/';
+
+                var id = $(this).attr('id');
+                id = id.substring(id.indexOf('-') + 1);
+
+                $("#player").html('<audio class="mediaelement"><source src="' + recordingUrl + id + '" type="audio/mpeg" /></audio>');
+                $("#player .mediaelement").mediaelementplayer({
+                    audioWidth: 638,
+                    success: function (mediaElement, domElement) {
+                        mediaElement.play();
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+@section metadata
+{
+
+    @{
+        OpenGraphMetaData openGraphMetaData = ResolveService<OpenGraphMetaData>();
+        openGraphMetaData.Title = ViewBag.Title;
+        openGraphMetaData.Url = Request.ToFullUrl();
+    }
+    <partial model="openGraphMetaData" name="MetaDataPartial"/>
+}

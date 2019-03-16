@@ -1,0 +1,83 @@
+﻿#sidebar a {
+    display: block;
+    padding: 3px;
+}
+
+#sidebar ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+p, ul {
+    line-height: 1.6em;
+    margin-bottom: 20px;
+}
+
+img.speakerIcon {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+#menucontainer { padding-top: 1em; }
+
+div#title {
+    display: block;
+    float: left;
+    padding-top: 1em;
+    text-align: left;
+}
+
+#logindisplay {
+    color: White;
+    display: block;
+    margin: 10px;
+    text-align: right;
+}
+
+#logindisplay a:link {
+    color: white;
+    text-decoration: underline;
+}
+
+#logindisplay a:visited {
+    color: white;
+    text-decoration: underline;
+}
+
+#logindisplay a:hover {
+    color: white;
+    text-decoration: none;
+}
+
+#latest a {
+    display: block;
+    padding: 0.5em;
+}
+
+@media screen and (min-width: 992px) {
+    #custom-collapse .collapse { display: block; }
+}
+
+a.anchor-unstyled {
+    color: inherit;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+}
+
+a.anchor-unstyled:visited, a.anchor-unstyled:hover, a.anchor-unstyled:link { color: inherit; }
+
+#auth {
+    margin-left: 2rem;
+    width: 30rem;
+}
+
+.first-name { font-weight: normal; }
+
+.last-name { font-weight: normal; }
+
+a.speaker-name h5.list-group-item-heading {
+    margin-bottom: 0;
+    margin-top: 0;
+}

@@ -1,0 +1,75 @@
+﻿// Configure bundling and minification for the project.
+// More info at https://go.microsoft.com/fwlink/?LinkId=808241
+[
+  {
+    "outputFileName": "wwwroot/css/site.min.css",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "wwwroot/css/site.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/vendor.min.css",
+    "inputFiles": [
+      "wwwroot/lib/roboto-fontface/css/roboto/roboto-fontface.css",
+      "wwwroot/lib/WebFont-OpenSans/css/stylesheet.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/bootstrap-day.min.css",
+    "inputFiles": [
+      "wwwroot/css/bootstrap-day.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/bootstrap-night.min.css",
+    "inputFiles": [
+      "wwwroot/css/bootstrap-night.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/site.min.js",
+    "inputFiles": [
+      "wwwroot/js/site.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    // Optionally generate .map file
+    "sourceMap": true
+  },
+  {
+    "outputFileName": "wwwroot/js/vendor.min.js",
+    "inputFiles": [
+      "wwwroot/lib/js-cookie/src/js.cookie.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/lib/ss-utils.js",
+    "inputFiles": [
+      "node_modules/ss-utils/ss-utils.js"
+    ],
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/lib/ss-utils.min.js",
+    "inputFiles": [
+      "node_modules/ss-utils/ss-utils.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  }
+]

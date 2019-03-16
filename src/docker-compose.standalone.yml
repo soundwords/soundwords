@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+  soundwords:
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_URLS=http://+:80 
+      - ASPNETCORE_ENVIRONMENT=Development
+      - CONNECTION_STRING=Server=db;User=soundwords;Database=soundwords;Password=secret;
+      - DB_TYPE=MySQL
+      - SITE_NAME=SoundWords
+      - DebugMode=true
+    ports:
+      - "50580:80"
+    volumes:
+      - ../lib/snd/public:/var/audio/public
+      - ../lib/snd/restricted:/var/audio/restricted
+  db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
+      - MYSQL_DATABASE=soundwords
+      - MYSQL_USER=soundwords
+      - MYSQL_PASSWORD=secret
+#    volumes:
+#      db-data:/var/lib/mysql
+
+#volumes:
+#  db-data:

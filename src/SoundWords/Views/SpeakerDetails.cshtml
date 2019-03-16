@@ -1,0 +1,424 @@
+﻿@model SpeakerResponse
+@{
+    ViewBag.Title = Model.Speaker;
+}
+<div class="pull-right">
+    <a class="btn btn-xs btn-default podcast" data-toggle="tooltip" data-placement="left" data-original-title="TIPS: Høyreklikk på knappen, kopier lenken, og legg den til i f.eks. iTunes" href="/feed/@Model.Speaker"><i class="fa fa-rss"></i> Podcast</a>
+</div>
+<h3>@Model.Speaker</h3>
+<div class="speaker-info clearfix">
+    @if (Model.HasPhoto)
+    {
+        <img class="speaker-photo img-responsive pull-left" src="/Speaker/Photo/@(Model.Uid)?maxDimension=120" alt="@Model.Speaker" />
+    }
+    @Html.Raw(Model.Description)
+</div>
+<div id="register-or-login" style="display: inline-block;" class="alert alert-warning alert-dismissible hidden" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Lukk">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    Kan ikke vise alt innhold. Logg inn eller registrer deg for å se mer fra denne taleren!
+</div>
+<div class="panel-group" id="accordion">
+    @for (int albumNo = 0; albumNo < Model.Albums.Count; albumNo++)
+    {
+        AlbumInfo album = Model.Albums[albumNo];
+        IOrderedEnumerable<int?> albumYears = album.Recordings.Select(r => r.Year).Distinct().OrderBy(y => y);
+        string albumYear = string.Join("/", albumYears);
+        <div class="panel panel-default">
+            <div class="panel-heading" data-toggle="collapse" data-parent="#accordion" data-target="#collapse-@albumNo">
+                <h4 class="panel-title collapsed">
+                    @album.Name <small>@albumYear</small>
+                </h4>
+            </div>
+            <div id="collapse-@albumNo" class="panel-collapse collapse panel-group album" data-album="@album.Name">
+                <div class="panel-body">
+                    <div class="pull-right sharing-buttons">
+                        <div class="ssk-group ssk-sm">
+                            <a href="" class="ssk ssk-facebook"></a>
+                            <a href="" class="ssk ssk-twitter"></a>
+                            <a href="" class="ssk ssk-email"></a>
+                            <a href="" class="ssk ssk-link"></a>
+                        </div>
+                    </div>
+                    <div id="album-@albumNo">
+                        <div class="clearfix">
+                            @if (album.HasAlbumArt)
+                            {
+                                <img class="album-art img-responsive pull-left" src="/Album/AlbumArt/@(album.Uid)?MaxDimension=400" alt="Album art" />
+                            }
+                            @Html.Raw(album.Description)
+                        </div>
+
+                        <div class="panel panel-nostyle">
+                            @{
+                                List<RecordingInfo> tracks = album.Recordings;
+                                bool multiSpeaker = album.Recordings.SelectMany(r => r.Speakers).Select(s => s.FullName).Distinct().Count() > 1;
+                            }
+                            @for (int trackNo = 0; trackNo < tracks.Count; trackNo++)
+                            {
+                                RecordingInfo track = tracks[trackNo];
+                                string trackPrefix = tracks.Count > 1 ? string.Format("{0}. ", track.Track) : "";
+                                string speakers = multiSpeaker ? track.Speakers.Select(s => s.FullName).ToSeparatedString('/') : null;
+
+                                <div class="track-title" data-toggle="collapse" data-parent="#album-@albumNo" data-target="#details-@albumNo-@trackNo">
+                                    <h5 class="clickable">
+                                        @trackPrefix@track.Title @if (speakers != null)
+                                        {
+                                            <text> (@speakers)</text>
+                                        }
+                                    </h5>
+                                </div>
+                                <div id="details-@albumNo-@trackNo" class="details collapse well" data-url="/Recording/Stream/@track.Uid" data-speaker="@Model.Speaker" data-album-name="@album.Name" data-track="@track.Title" data-track-no="@track.Track">
+                                    <div class="player"></div>
+                                    <div class="pull-right">
+                                        <a class="btn btn-xs btn-default piwik_download" href="/Recording/Download/@track.Uid"><i class="fa fa-download" title="Last ned"></i> Last ned</a>
+                                    </div>
+                                    <div class="comment">
+                                        &nbsp;
+                                        <dl>
+                                            @if (!string.IsNullOrWhiteSpace(track.Comment))
+                                            {
+                                                <dt>Informasjon</dt>
+                                                <dd>@track.Comment</dd>
+                                            }
+                                            @if (track.Year != null)
+                                            {
+                                                <dt>Årstall</dt>
+                                                <dd>@track.Year</dd>
+                                            }
+                                        </dl>
+                                    </div>
+                                </div>
+                            }
+                            @if (album.Attachments.Count > 0)
+                            {
+                                <h4 class="attachments">Vedlegg</h4>
+                                foreach (AttachmentInfo attachment in album.Attachments)
+                                {
+                                    string fileType;
+                                    switch (attachment.Name.GetExtension())
+                                    {
+                                        case ".ppt":
+                                        case ".pptx":
+                                            fileType = "-powerpoint";
+                                            break;
+                                        case ".doc":
+                                        case ".docx":
+                                            fileType = "-word";
+                                            break;
+                                        case ".xls":
+                                        case ".xlsx":
+                                            fileType = "-excel";
+                                            break;
+                                        case ".pdf":
+                                            fileType = "-pdf";
+                                            break;
+                                        default:
+                                            fileType = null;
+                                            break;
+                                    }
+                                    <p>
+                                        <i class="fa fa-file@(fileType)-o"></i> <a class="piwik_download" href="/Album/DownloadAttachment/@album.Uid/@attachment.Index">@attachment.Name</a>
+                                    </p>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div>
+    <small>Sharing powered by <a href="http://socialsharekit.com/">Social Share Kit</a></small>
+</div>
+
+@section Sidebar
+    {
+    <partial for="Speakers" name="SpeakersPartial" />
+}
+
+@section styles
+    {
+    <!-- Social Share Kit CSS -->
+    <link rel="stylesheet" href="~/lib/social-share-kit/dist/css/social-share-kit.css" type="text/css">
+    <style type="text/css">
+        li {
+            padding-top: 0.3em;
+        }
+
+        .player {
+            margin-bottom: 1em;
+            padding: 5px;
+        }
+
+        #current-title, #current-album {
+            padding: 5px;
+        }
+
+        #current-album {
+            font-size: 1.4em;
+        }
+
+        .details {
+            padding: 1em;
+        }
+
+        .panel-heading, .clickable {
+            cursor: pointer;
+        }
+
+        .panel-nostyle {
+            -ms-box-shadow: inherit;
+            -webkit-box-shadow: inherit;
+            box-shadow: inherit;
+        }
+
+        .panel-primary small {
+            color: inherit;
+        }
+
+        .track-title {
+            padding-top: 0.3em;
+        }
+
+        .attachments {
+            padding-top: 1em;
+        }
+
+        .album-art {
+            padding-right: 10px;
+        }
+
+        .speaker-photo {
+            padding-right: 10px;
+        }
+
+        .speaker-info {
+            padding-bottom: 10px;
+        }
+
+        .sharing-buttons {
+        }
+    </style>
+}
+
+@section scripts
+    {
+    <environment names="Development">
+        <script src="~/lib/mediaelement/build/mediaelement-and-player.js"></script>
+        <!-- Social Share Kit JS -->
+        <script type="text/javascript" src="~/lib/social-share-kit/dist/js/social-share-kit.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/lib/mediaelement/build/mediaelement-and-player.min.js"></script>
+        <!-- Social Share Kit JS -->
+        <script type="text/javascript" src="~/lib/social-share-kit/dist/js/social-share-kit.min.js"></script>
+    </environment>
+    @if (AppSettings.Get("PIWIK_ENABLED", false))
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                var currentUrl = location.href;
+                window.addEventListener('hashchange',
+                    function () {
+                        window._paq.push(['setReferrerUrl', currentUrl]);
+                        currentUrl = window.location;
+                        window._paq.push(['setCustomUrl', currentUrl]);
+                    });
+            });
+        </script>
+    }
+    <script type="text/javascript">
+        SocialShareKit.init();
+
+        var player = null;
+        var active = false;
+
+        $(document).ready(function() {
+            $('a.podcast').tooltip();
+
+            var selectedAlbum = (window.location.hash.length < 3 || window.location.hash.indexOf('#!/') !== 0)
+                ? ''
+                : decodeURIComponent(window.location.hash.substring(3).replace(/\+/g, '%20'));
+
+            if (selectedAlbum != null) {
+                $('[data-album="' + selectedAlbum.replace(/\"/g, '\\"') + '"]')
+                    .collapse('show')
+                    .parent()
+                    .removeClass("panel-default")
+                    .addClass("panel-primary");
+
+                window.location.hash = "!/" + urlEncode(selectedAlbum);
+
+                @if (!IsAuthenticated)
+                {
+                    <text>
+                        $.get('@(new IsRestricted().ToGetUrl())?SpeakerName=' + urlEncode('@Model.Speaker'),
+                            function(data) {
+                                if (data.isRestricted) {
+                                    $('#register-or-login').removeClass('hidden');
+                                    $('#auth').removeClass('hidden');
+                                    var userNameSet = false;
+                                    try {
+                                        userNameSet = !!window.localStorage["userName"];
+                                    } catch (e) {
+                                    }
+                                    if (userNameSet) {
+                                        window.createLoginForm();
+                                    } else {
+                                        window.createRegisterForm();
+                                    }
+                                }
+                            },
+                            "json");
+                    </text>
+                }
+            }
+
+            $('#accordion .panel-collapse').on('show.bs.collapse',
+                function(e) {
+                    if ($(e.target).hasClass("details")) return;
+
+                    $(this).parent()
+                        .removeClass("panel-default")
+                        .addClass("panel-primary");
+                });
+
+            $('#accordion .panel-collapse').on('shown.bs.collapse',
+                function(e) {
+                    if ($(e.target).hasClass("details")) return;
+
+                    var album = $(this).data('album');
+                    if (album) {
+                        window.location.hash = "!/" + urlEncode(album);
+                    } else {
+                        window.location.hash = "";
+                    }
+
+                    $(this).find('.details').first().collapse('show');
+                });
+
+            $('#accordion .panel-collapse').on('hide.bs.collapse',
+                function(e) {
+                    if ($(e.target).hasClass("details")) return;
+
+                    $(this).parent()
+                        .removeClass("panel-primary")
+                        .addClass("panel-default");
+
+                    window.location.hash = "";
+                });
+
+            $('.details').on('shown.bs.collapse',
+                function(e) {
+                    if ($(e.target).hasClass("album")) return;
+
+                    if ($(this).hasClass("player-added")) return;
+
+                    var trackData = {
+                        url: $(this).data('url'),
+                        speaker: $(this).data('speaker'),
+                        album: $(this).data('album-name'),
+                        track: $(this).data('track'),
+                        trackNo: $(this).data('track-no')
+                    };
+
+                    $(this).find(".player")
+                        .append('<audio class="mediaelement"><source src="' + trackData.url + '" type="audio/mpeg" /></audio>');
+
+                    $(this).find(".mediaelement").mediaelementplayer({
+                        audioWidth: '100%',
+                        success: function(mediaElement) {
+                            @if (AppSettings.Get("PIWIK_ENABLED", false))
+                            {
+                                <text>
+                                    $(mediaElement).on('playing', trackData, function(event) {
+                                        window._paq.push([
+                                            'trackEvent', 'Recording', 'Play', createRecordingInfo(trackData),
+                                            event.currentTarget.currentTime
+                                        ]);
+                                    });
+                                    $(mediaElement).on('pause', trackData, function (event) {
+                                        window._paq.push([
+                                            'trackEvent', 'Recording', 'Pause', createRecordingInfo(trackData),
+                                            event.currentTarget.currentTime
+                                        ]);
+                                    });
+                                    $(mediaElement).on('ended', trackData, function (event) {
+                                        window._paq.push([
+                                            'trackEvent', 'Recording', 'End', createRecordingInfo(trackData),
+                                            event.currentTarget.currentTime
+                                        ]);
+                                    });
+                                </text>
+                            }
+                            player = mediaElement;
+                        }
+                    });
+
+                    $(this).addClass('player-added');
+                });
+        });
+
+        var urlEncode = function(text) {
+            return encodeURIComponent(text);
+        };
+
+        var createRecordingInfo = function(trackData) {
+            return '[ ' +
+                trackData.speaker +
+                ' | ' +
+                trackData.album +
+                ' | ' +
+                trackData.trackNo +
+                ': ' +
+                trackData.track +
+                ' ]';
+        };
+
+    </script>
+}
+
+@section metadata
+    {
+    @{
+        OpenGraphMetaData openGraphMetaData = ResolveService<OpenGraphMetaData>();
+
+        ushort? oldest = Db.Scalar<ushort?>(Db.From<DbRecording>().Where(r => r.Year != null).Select(r => Sql.Min(r.Year)));
+        openGraphMetaData.Description = "På sunneord.no kan du lytte til bibelundervisning fra perioden mellom {0} og i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;".Fmt(oldest);
+        SpeakerDto requestDto = (SpeakerDto)Request.Dto;
+
+        string normalizedUrl = Request.ToFullUrl(new SpeakerDto { Name = requestDto.Name });
+        openGraphMetaData.Url = normalizedUrl;
+
+        AlbumInfo selectedAlbum = Model.SelectedAlbum;
+        if (selectedAlbum != null)
+        {
+            if (selectedAlbum.HasAlbumArt)
+            {
+                openGraphMetaData.Image = Request.ToFullUrl(new AlbumArt { AlbumUid = selectedAlbum.Uid });
+            }
+            if (!string.IsNullOrWhiteSpace(selectedAlbum.Description))
+            {
+                HtmlDocument document = new HtmlDocument();
+                document.LoadHtml(selectedAlbum.Description);
+
+                string textOnlyDescription = HtmlEntity.DeEntitize(document.DocumentNode.InnerText);
+                openGraphMetaData.Description = textOnlyDescription;
+            }
+            openGraphMetaData.Title = string.Format("{0}: {1}", selectedAlbum.AlbumSpeakers, selectedAlbum.Name);
+            openGraphMetaData.Url = openGraphMetaData.Url.SetFragment(string.Format("/{0}", selectedAlbum.Name));
+            openGraphMetaData.Type = "music.album";
+            openGraphMetaData.Musician = normalizedUrl;
+        }
+        else
+        {
+            openGraphMetaData.Title = Model.Speaker;
+            openGraphMetaData.Type = "profile";
+        }
+    }
+
+    <partial model="openGraphMetaData" name="MetaDataPartial" />
+}

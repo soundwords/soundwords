@@ -1,0 +1,199 @@
+﻿@using ServiceStack.Host
+@inherits ViewPage
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @RenderSection("metadata", true)
+    <title>@ViewBag.Title</title>
+
+    <!-- Bootstrap -->
+    @if (Request.GetCookieValue("night-mode") == "true")
+    {
+        <link href="~/css/bootstrap-night.min.css" rel="stylesheet">
+    }
+    else
+    {
+        <link href="~/css/bootstrap-day.min.css" rel="stylesheet">
+    }
+    <environment names="Development">
+        <link href="~/lib/roboto-fontface/css/roboto/roboto-fontface.css" rel="stylesheet" />
+        <link href="~/lib/WebFont-OpenSans/css/stylesheet.css" rel="stylesheet" />
+        <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+        <link href="~/lib/mediaelement/build/mediaelementplayer.css" rel="stylesheet" />
+    </environment>
+    <environment names="Staging,Production">
+        <link href="~/css/vendor.min.css" rel="stylesheet" />
+        <link href="~/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+        <link href="~/lib/mediaelement/build/mediaelementplayer.min.css" rel="stylesheet" />
+    </environment>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    @RenderSection("head", false)
+    <environment names="Development">
+        <link href="~/css/site.css" rel="stylesheet" />
+    </environment>
+    <environment names="Staging,Production">
+        <link href="~/css/site.min.css" rel="stylesheet" />
+    </environment>
+    @RenderSection("styles", false)
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+    <link rel="icon" type="image/png" href="/favicon-196x196.png" sizes="196x196">
+    <link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+    <link rel="icon" type="image/png" href="/favicon-196x196.png" sizes="196x196">
+    <link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+    @if (AppSettings.Get("PIWIK_ENABLED", false))
+    {
+        <!-- Piwik -->
+        <script type="text/javascript">
+            var _paq = _paq || [];
+            /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+            _paq.push(["setCookieDomain", "@(AppSettings.GetString("PIWIK_DOMAINS"))"]);
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+                var u="//@(AppSettings.GetString("PIWIK_HOST"))/";
+                _paq.push(['setTrackerUrl', u+'piwik.php']);
+                _paq.push(['setSiteId', '@(AppSettings.GetString("PIWIK_SITE_ID"))']);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+                g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+            })();
+        </script>
+        <noscript><p><img src="//@(AppSettings.GetString("PIWIK_HOST"))/piwik.php?idsite=@(AppSettings.GetString("PIWIK_SITE_ID"))&rec=1" style="border:0;" alt="" /></p></noscript>
+        <!-- End Piwik Code -->
+    }
+</head>
+<body>
+    <div class="container-fluid">
+        <div id="header" class="row">
+            <div class="col-md-12">
+                <div id="title">
+                    <a href="/"><img src="~/images/sunneord.png" alt="Sunne ord" /></a>
+                </div>
+                <div class="btn-group pull-right visible-xs visible-sm">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i></button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="/">Hjem</a></li>
+                        <li><a href="/Home/About">Om oss</a></li>
+                        <li><a href="#" class="night-mode"><i class="fa fa-moon-o" title="Nattmodus"></i></a></li>
+                        <li><a href="#" class="day-mode"><i class="fa fa-sun-o" title="Dagmodus"></i></a></li>
+                        @if (IsAuthenticated)
+                        {
+                            <li><a href="#" class="logout"><i class="fa fa-sign-out" title="Logg ut"></i></a></li>
+                        }
+                    </ul>
+                </div>
+                <div class="btn-group pull-right visible-md visible-lg">
+                    <a href="/" class="btn btn-default">Hjem</a>
+                    <a href="/Home/About" class="btn btn-default">Om oss</a>
+                    <a href="#" class="night-mode btn btn-default"><i class="fa fa-moon-o" title="Nattmodus"></i></a>
+                    <a href="#" class="day-mode btn btn-default"><i class="fa fa-sun-o" title="Dagmodus"></i></a>
+                    @if (IsAuthenticated)
+                    {
+                        <a href="#" class="logout btn btn-default"><i class="fa fa-sign-out" title="Logg ut"></i></a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div id="main" class="row">
+            <div id="sidebar" class="col-md-3">@RenderSection("Sidebar", false)</div>
+            <div id="content" class="col-md-9">
+                @if (!IsAuthenticated)
+                {
+                    <div id="auth" class="pull-right well hidden">
+                    </div>
+                }
+
+                @RenderBody()
+            </div>
+        </div>
+        <div id="footer" class="row">
+            <div class="col-md-12">
+            </div>
+        </div>
+    </div>
+
+    <environment names="Development">
+        <script src="/lib/jquery/dist/jquery.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="~/lib/js-cookie/src/js.cookie.js"></script>
+        <script src="~/js/site.js"></script>
+        <script src="~/lib/ss-utils.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="~/js/site.min.js"></script>
+        <script src="~/js/vendor.min.js"></script>
+        <script src="~/lib/ss-utils.min.js"></script>
+    </environment>
+    <script type="text/javascript">
+        function createRegisterForm() {
+            createRegisterFormBase('@(new Register().ToPostUrl())', '@(new Authenticate().ToPostUrl())');
+        }
+
+        function createLoginForm() {
+            createLoginFormBase('@(new Register().ToPostUrl())', '@(new Authenticate().ToPostUrl())');
+        }
+        $(function () {
+            $(".day-mode").click(function (e) {
+                e.preventDefault();
+
+                Cookies.set("night-mode", "false", { expires: 3650, path: '/' });
+                location.reload();
+            });
+
+            $(".night-mode").click(function (e) {
+                e.preventDefault();
+
+                Cookies.set("night-mode", "true", { expires: 3650, path: '/' });
+                location.reload();
+            });
+
+            $(".logout").click(function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: '@(new Authenticate().ToPostUrl())',
+                    type: 'DELETE',
+                    success: function (result) {
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+    @RenderSection("scripts", false)
+</body>
+</html>

@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+  soundwords:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_HTTPS_PORT=44357
+      - CONNECTION_STRING=Server=db;User=soundwords;Database=soundwords;Password=secret;
+      - DB_TYPE=MySQL
+      - SITE_NAME=SoundWords
+    ports:
+      - "40480:80"
+      - "44357:443"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ../lib/snd/public:/var/audio/public
+      - ../lib/snd/restricted:/var/audio/restricted
+  db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
+      - MYSQL_DATABASE=soundwords
+      - MYSQL_USER=soundwords
+      - MYSQL_PASSWORD=secret
+#    volumes:
+#      db-data:/var/lib/mysql
+
+#volumes:
+#  db-data:

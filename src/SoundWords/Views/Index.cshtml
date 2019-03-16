@@ -1,0 +1,76 @@
+﻿@using System.Data
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using ServiceStack
+@using ServiceStack.Data
+@using ServiceStack.OrmLite
+@using SoundWords.Models
+@model IndexResponse
+@{
+    ViewBag.Title = "Sunne ord";
+    ushort? oldest = Db.Scalar<ushort?>(Db.From<DbRecording>().Where(r => r.Year != null).Select(r => Sql.Min(r.Year)));
+}
+
+<h3>Velkommen til Sunne ord!</h3>
+<p>
+    Her kan du lytte til bibelundervisning fra perioden mellom @oldest og i dag. Klikk på en av talerne for å begynne oppdagelsesreisen!
+
+    <div>
+        <div class="pull-right">
+            <a class="btn btn-xs btn-default podcast" data-toggle="tooltip" data-placement="left" data-original-title="TIPS: Høyreklikk på knappen, kopier lenken, og legg den til i f.eks. iTunes" href="/feed/"><i class="fa fa-rss"></i> Podcast</a>
+        </div>
+        <h4>Siste nytt</h4>
+        <ul id="latest" class="list-unstyled">
+            @foreach (var albumWithSpeakers in Model.LatestAlbums)
+            {
+                <li>
+                    <a class="selected" href="/Recording/Speaker/@albumWithSpeakers.Speakers.FirstOrDefault()?.FullName.UrlEncode20()/#!/@albumWithSpeakers.Album.Name.UrlEncode20()">
+                        @albumWithSpeakers.Album.CreatedOn.ToString("d", new CultureInfo("nb-NO")) @albumWithSpeakers.Album.Name <i>(@string.Join("/", albumWithSpeakers.Speakers.Select(s => s.FullName)))</i>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+    Vi er ennå ikke helt i mål med siden, og
+    <a style="text-decoration: underline" href="mailto:post@sunneord.no">tar gjerne imot tips om forbedringer.</a>
+</p>
+
+@section Sidebar
+    {
+    <partial for="Speakers" name="SpeakersPartial" />
+}
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(function () {
+            $('#auth').removeClass('hidden');
+            var userNameSet = false;
+            try {
+                userNameSet = !!window.localStorage["userName"];
+            } catch (e) { }
+
+            if (userNameSet) {
+                createLoginForm();
+            } else {
+                createRegisterForm();
+            }
+
+            $("input").change($.ss.clearAdjacentError);
+
+            $("a.podcast").tooltip();
+        });
+
+
+    </script>
+}
+
+@section metadata
+    {
+    @{
+        var openGraphMetaData = ResolveService<OpenGraphMetaData>();
+        openGraphMetaData.Title = ViewBag.Title;
+        openGraphMetaData.Description = "På sunneord.no kan du lytte til bibelundervisning fra perioden mellom {0} og i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;".Fmt(oldest);
+        openGraphMetaData.Url = Request.GetApplicationUrl();
+    }
+    <partial model="openGraphMetaData" name="MetaDataPartial" />
+}

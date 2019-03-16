@@ -17,6 +17,7 @@ FROM node AS node
 WORKDIR /src
 COPY SoundWords/bower.json .
 RUN npm install -g bower
+RUN echo '{ "allow_root": true }' > /root/.bowerrc
 RUN bower install
 
 FROM build AS publish

@@ -99,9 +99,9 @@
         <div id="header" class="row">
             <div class="col-md-12">
                 <div id="title">
-                    <a href="/"><img src="~/images/sunneord.png" alt="Sunne ord" /></a>
+                    <a href="/"><img src="@AppSettings.Get("LOGO_PATH", "content/images/logo.png")" alt="@AppSettings.GetString("SITE_NAME")" /></a>
                 </div>
-                <div class="btn-group pull-right visible-xs visible-sm">
+                <div class="btn-group pull-right visible-xs visible-sm">b
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i></button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="/">Hjem</a></li>

@@ -1,19 +1,22 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Funq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using ServiceStack;
 using ServiceStack.Auth;
 using ServiceStack.Configuration;
 using ServiceStack.FluentValidation;
+using ServiceStack.IO;
 using ServiceStack.Logging;
 using ServiceStack.Logging.Serilog;
 using ServiceStack.Mvc;
 using ServiceStack.OrmLite;
 using ServiceStack.Text;
 using ServiceStack.Validation;
+using ServiceStack.VirtualPath;
 using ServiceStack.Web;
 using SoundWords.Models;
 using SoundWords.Services;
@@ -137,6 +140,13 @@ namespace SoundWords
             base.OnAfterInit();
 
             RegisterAs<CustomRegistrationValidator, IValidator<Register>>();            
+        }
+
+        public override List<IVirtualPathProvider> GetVirtualFileSources()
+        {
+            List<IVirtualPathProvider> existingPathProviders = base.GetVirtualFileSources();
+            existingPathProviders.Add(new FileSystemMapping("content", Path.Combine(Configuration.CustomFolder, "content")));
+            return existingPathProviders;
         }
 
         public override string ResolveAbsoluteUrl(string virtualPath, IRequest httpReq)

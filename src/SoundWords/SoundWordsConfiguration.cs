@@ -22,6 +22,8 @@ namespace SoundWords
         public string CachePath => Get("CACHE_PATH", "/var/cache");
         public string SiteUrl => GetString("SITE_URL");
 
+        public string CustomFolder => Get("CUSTOM_FOLDER", "/var/custom");
+
         public SoundWordsConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration) : base(configuration)
         {
         }

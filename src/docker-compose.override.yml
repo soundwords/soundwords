@@ -17,6 +17,8 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ../lib/snd/public:/var/audio/public
       - ../lib/snd/restricted:/var/audio/restricted
+      - ../custom:/var/custom
+
   db:
     image: mysql:5.7
     environment:

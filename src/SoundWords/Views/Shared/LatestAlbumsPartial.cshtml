@@ -1,0 +1,18 @@
+﻿@model List<AlbumWithSpeakers>
+
+<div>
+    <div class="pull-right">
+        <a class="btn btn-xs btn-default podcast" data-toggle="tooltip" data-placement="left" data-original-title="TIPS: Høyreklikk på knappen, kopier lenken, og legg den til i f.eks. iTunes" href="/feed/"><i class="fa fa-rss"></i> Podcast</a>
+    </div>
+    <h4>Siste nytt</h4>
+    <ul id="latest" class="list-unstyled">
+        @foreach (var albumWithSpeakers in Model)
+        {
+            <li>
+                <a class="selected" href="/Recording/Speaker/@albumWithSpeakers.Speakers.FirstOrDefault()?.FullName.UrlEncode20()/#!/@albumWithSpeakers.Album.Name.UrlEncode20()">
+                    @albumWithSpeakers.Album.CreatedOn.ToString("d", new CultureInfo("nb-NO")) @albumWithSpeakers.Album.Name <i>(@string.Join("/", albumWithSpeakers.Speakers.Select(s => s.FullName)))</i>
+                </a>
+            </li>
+        }
+    </ul>
+</div>

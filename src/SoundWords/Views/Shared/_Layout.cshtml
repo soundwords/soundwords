@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <base href="@Configuration.SiteUrl">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,15 +19,15 @@
         <link href="~/css/bootstrap-day.min.css" rel="stylesheet">
     }
     <environment names="Development">
-        <link href="~/lib/roboto-fontface/css/roboto/roboto-fontface.css" rel="stylesheet" />
-        <link href="~/lib/WebFont-OpenSans/css/stylesheet.css" rel="stylesheet" />
-        <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
-        <link href="~/lib/mediaelement/build/mediaelementplayer.css" rel="stylesheet" />
+        <link href="~/lib/roboto-fontface/css/roboto/roboto-fontface.css" rel="stylesheet"/>
+        <link href="~/lib/WebFont-OpenSans/css/stylesheet.css" rel="stylesheet"/>
+        <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet"/>
+        <link href="~/lib/mediaelement/build/mediaelementplayer.css" rel="stylesheet"/>
     </environment>
     <environment names="Staging,Production">
-        <link href="~/css/vendor.min.css" rel="stylesheet" />
-        <link href="~/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-        <link href="~/lib/mediaelement/build/mediaelementplayer.min.css" rel="stylesheet" />
+        <link href="~/css/vendor.min.css" rel="stylesheet"/>
+        <link href="~/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet"/>
+        <link href="~/lib/mediaelement/build/mediaelementplayer.min.css" rel="stylesheet"/>
     </environment>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -36,10 +37,10 @@
     <![endif]-->
     @RenderSection("head", false)
     <environment names="Development">
-        <link href="~/css/site.css" rel="stylesheet" />
+        <link href="~/css/site.css" rel="stylesheet"/>
     </environment>
     <environment names="Staging,Production">
-        <link href="~/css/site.min.css" rel="stylesheet" />
+        <link href="~/css/site.min.css" rel="stylesheet"/>
     </environment>
     @RenderSection("styles", false)
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
@@ -82,14 +83,19 @@
             _paq.push(['trackPageView']);
             _paq.push(['enableLinkTracking']);
             (function() {
-                var u="//@Configuration.PiwikHost/";
-                _paq.push(['setTrackerUrl', u+'piwik.php']);
+                var u = "//@Configuration.PiwikHost/";
+                _paq.push(['setTrackerUrl', u + 'piwik.php']);
                 _paq.push(['setSiteId', '@Configuration.PiwikSiteId']);
-                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-                g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+                var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+                g.type = 'text/javascript';
+                g.async = true;
+                g.defer = true;
+                g.src = u + 'piwik.js';
+                s.parentNode.insertBefore(g, s);
             })();
         </script>
-        <noscript><p><img src="//@Configuration.PiwikHost/piwik.php?idsite=@Configuration.PiwikSiteId&rec=1" style="border:0;" alt="" /></p></noscript>
+        <noscript>
+            <p><img src="//@Configuration.PiwikHost/piwik.php?idsite=@Configuration.PiwikSiteId&rec=1" style="border: 0;" alt=""/></p></noscript>
         <!-- End Piwik Code -->
     }
 </head>
@@ -103,8 +109,8 @@
                 <div class="btn-group pull-right visible-xs visible-sm">b
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i></button>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="/">Hjem</a></li>
-                        <li><a href="/Home/About">Om oss</a></li>
+                        <li><a href="@Configuration.SiteUrl">Hjem</a></li>
+                        <li><a href="Home/About">Om oss</a></li>
                         <li><a href="#" class="night-mode"><i class="fa fa-moon-o" title="Nattmodus"></i></a></li>
                         <li><a href="#" class="day-mode"><i class="fa fa-sun-o" title="Dagmodus"></i></a></li>
                         @if (IsAuthenticated)
@@ -114,8 +120,8 @@
                     </ul>
                 </div>
                 <div class="btn-group pull-right visible-md visible-lg">
-                    <a href="/" class="btn btn-default">Hjem</a>
-                    <a href="/Home/About" class="btn btn-default">Om oss</a>
+                    <a href="@Configuration.SiteUrl" class="btn btn-default">Hjem</a>
+                    <a href="Home/About" class="btn btn-default">Om oss</a>
                     <a href="#" class="night-mode btn btn-default"><i class="fa fa-moon-o" title="Nattmodus"></i></a>
                     <a href="#" class="day-mode btn btn-default"><i class="fa fa-sun-o" title="Dagmodus"></i></a>
                     @if (IsAuthenticated)

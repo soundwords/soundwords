@@ -1,5 +1,4 @@
-﻿@using ServiceStack.Host
-@inherits ViewPage
+﻿@inherits ViewBase
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,24 +72,24 @@
     <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
     <meta name="msapplication-TileColor" content="#2b5797">
     <meta name="msapplication-TileImage" content="/mstile-144x144.png">
-    @if (AppSettings.Get("PIWIK_ENABLED", false))
+    @if (Configuration.PiwikEnabled)
     {
         <!-- Piwik -->
         <script type="text/javascript">
             var _paq = _paq || [];
             /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-            _paq.push(["setCookieDomain", "@(AppSettings.GetString("PIWIK_DOMAINS"))"]);
+            _paq.push(["setCookieDomain", "@Configuration.PiwikDomains"]);
             _paq.push(['trackPageView']);
             _paq.push(['enableLinkTracking']);
             (function() {
-                var u="//@(AppSettings.GetString("PIWIK_HOST"))/";
+                var u="//@Configuration.PiwikHost/";
                 _paq.push(['setTrackerUrl', u+'piwik.php']);
-                _paq.push(['setSiteId', '@(AppSettings.GetString("PIWIK_SITE_ID"))']);
+                _paq.push(['setSiteId', '@Configuration.PiwikSiteId']);
                 var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
                 g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
             })();
         </script>
-        <noscript><p><img src="//@(AppSettings.GetString("PIWIK_HOST"))/piwik.php?idsite=@(AppSettings.GetString("PIWIK_SITE_ID"))&rec=1" style="border:0;" alt="" /></p></noscript>
+        <noscript><p><img src="//@Configuration.PiwikHost/piwik.php?idsite=@Configuration.PiwikSiteId&rec=1" style="border:0;" alt="" /></p></noscript>
         <!-- End Piwik Code -->
     }
 </head>
@@ -99,7 +98,7 @@
         <div id="header" class="row">
             <div class="col-md-12">
                 <div id="title">
-                    <a href="/"><img src="@AppSettings.Get("LOGO_PATH", "content/images/logo.png")" alt="@AppSettings.GetString("SITE_NAME")" /></a>
+                    <a href="/"><img src="@Configuration.LogoPath" alt="@Configuration.SiteName" /></a>
                 </div>
                 <div class="btn-group pull-right visible-xs visible-sm">b
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i></button>

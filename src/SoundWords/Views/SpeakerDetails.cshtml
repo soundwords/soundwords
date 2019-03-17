@@ -1,5 +1,6 @@
-﻿@model SpeakerDetailsResponse
+﻿@inherits ViewBase<SpeakerDetailsResponse>
 @{
+    Layout = "_Framework";
     ViewBag.Title = Model.Speaker;
 }
 <div class="pull-right">
@@ -134,11 +135,6 @@
     <small>Sharing powered by <a href="http://socialsharekit.com/">Social Share Kit</a></small>
 </div>
 
-@section Sidebar
-    {
-    <partial for="Speakers" name="SpeakersPartial" />
-}
-
 @section styles
     {
     <!-- Social Share Kit CSS -->
@@ -216,7 +212,7 @@
         <!-- Social Share Kit JS -->
         <script type="text/javascript" src="~/lib/social-share-kit/dist/js/social-share-kit.min.js"></script>
     </environment>
-    @if (AppSettings.Get("PIWIK_ENABLED", false))
+    @if (Configuration.PiwikEnabled)
     {
         <script type="text/javascript">
             $(document).ready(function () {
@@ -331,7 +327,7 @@
                     $(this).find(".mediaelement").mediaelementplayer({
                         audioWidth: '100%',
                         success: function(mediaElement) {
-                            @if (AppSettings.Get("PIWIK_ENABLED", false))
+                            @if (Configuration.PiwikEnabled)
                             {
                                 <text>
                                     $(mediaElement).on('playing', trackData, function(event) {
@@ -384,21 +380,20 @@
 @section metadata
     {
     @{
-        OpenGraphMetaData openGraphMetaData = ResolveService<OpenGraphMetaData>();
 
-        ushort? oldest = Db.Scalar<ushort?>(Db.From<DbRecording>().Where(r => r.Year != null).Select(r => Sql.Min(r.Year)));
-        openGraphMetaData.Description = "På sunneord.no kan du lytte til bibelundervisning fra perioden mellom {0} og i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;".Fmt(oldest);
         SpeakerDetails request = (SpeakerDetails)Request.Dto;
 
-        string normalizedUrl = Request.ToFullUrl(new SpeakerDetails { Name = request.Name });
-        openGraphMetaData.Url = normalizedUrl;
+        string url = Request.ToFullUrl(new SpeakerDetails { Name = request.Name });
+
+        OpenGraphMetadata metadata = new OpenGraphMetadata {Url = url};
 
         AlbumInfo selectedAlbum = Model.SelectedAlbum;
+
         if (selectedAlbum != null)
         {
             if (selectedAlbum.HasAlbumArt)
             {
-                openGraphMetaData.Image = Request.ToFullUrl(new AlbumArt { AlbumUid = selectedAlbum.Uid });
+                metadata.Image = Request.ToFullUrl(new AlbumArt { AlbumUid = selectedAlbum.Uid });
             }
             if (!string.IsNullOrWhiteSpace(selectedAlbum.Description))
             {
@@ -406,19 +401,19 @@
                 document.LoadHtml(selectedAlbum.Description);
 
                 string textOnlyDescription = HtmlEntity.DeEntitize(document.DocumentNode.InnerText);
-                openGraphMetaData.Description = textOnlyDescription;
+                metadata.Description = textOnlyDescription;
             }
-            openGraphMetaData.Title = string.Format("{0}: {1}", selectedAlbum.AlbumSpeakers, selectedAlbum.Name);
-            openGraphMetaData.Url = openGraphMetaData.Url.SetFragment(string.Format("/{0}", selectedAlbum.Name));
-            openGraphMetaData.Type = "music.album";
-            openGraphMetaData.Musician = normalizedUrl;
+
+            metadata.Title = $"{selectedAlbum.AlbumSpeakers}: {selectedAlbum.Name}";
+            metadata.Url = url.SetFragment($"/{selectedAlbum.Name}");
+            metadata.Type = "music.album";
+            metadata.Musician = url;
         }
         else
         {
-            openGraphMetaData.Title = Model.Speaker;
-            openGraphMetaData.Type = "profile";
+            metadata.Title = Model.Speaker;
+            metadata.Type = "profile";
         }
     }
-
-    <partial model="openGraphMetaData" name="MetaDataPartial" />
+    <vc:open-graph-metadata data="@metadata"></vc:open-graph-metadata>
 }

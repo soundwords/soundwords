@@ -1,0 +1,30 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@RenderBody()
+
+@section Sidebar
+{
+    <vc:speaker-list></vc:speaker-list>
+}
+
+@section scripts
+{
+    @RenderSection("scripts", false)
+}
+
+@section head
+{
+    @RenderSection("head", false)
+}
+
+@section styles
+{
+    @RenderSection("styles", false)
+}
+
+@section metadata
+{
+    @RenderSection("metadata", false)
+}

@@ -1,25 +1,16 @@
 ﻿@model AboutResponse
 @{
-    ViewBag.Title = "About";
+    Layout = "_Framework";
+
+    ViewBag.Title = "Om oss";
 }
 
-@Html.RenderMarkdown(ResolveService<IPageTool>().Get("About"))
-
-@section Sidebar
-    {
-    <partial for="Speakers" name="SpeakersPartial" />
-}
-
-@section scripts
-{}
+<vc:markdown name="About"></vc:markdown>
 
 @section metadata
-    {
-
+{
     @{
-        OpenGraphMetaData openGraphMetaData = ResolveService<OpenGraphMetaData>();
-        openGraphMetaData.Title = "Om oss";
-        openGraphMetaData.Url = Request.ToFullUrl();
+        OpenGraphMetadata metadata = new OpenGraphMetadata {Title = ViewBag.Title};
     }
-    <partial model="openGraphMetaData" name="MetaDataPartial" />
+    <vc:open-graph-metadata data="@metadata"></vc:open-graph-metadata>
 }

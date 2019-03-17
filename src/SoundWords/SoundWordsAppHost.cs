@@ -121,7 +121,7 @@ namespace SoundWords
             //Use OrmLite DB Connection to persist the UserAuth and AuthProvider info
             var authRepo = container.Resolve<CustomOrmLiteAuthRepository>();
             //If using and RDBMS to persist UserAuth, we must create required tables
-            if (AppSettings.Get("RECREATE_AUTH_TABLES", false))
+            if (Configuration.RecreateAuthTables)
             {
                 _logger.Info("Recreating auth tables");
                 authRepo.DropAndReCreateTables(); //Drop and re-create all Auth and registration tables

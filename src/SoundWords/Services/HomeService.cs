@@ -26,7 +26,7 @@ namespace SoundWords.Services
     {
         private readonly IRecordingRepository _recordingRepository;
 
-        public HomeService(IRecordingRepository recordingRepository, IMetaDataCollection metaDataCollection)
+        public HomeService(IRecordingRepository recordingRepository)
         {
             _recordingRepository = recordingRepository;          
         }

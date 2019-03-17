@@ -4,10 +4,8 @@ namespace SoundWords.Services
 {
     public abstract class ServiceBase : Service
     {
-        public CustomUserSession UserSession
-        {
-            get { return GetSession() as CustomUserSession; }
-        }
+        protected CustomUserSession UserSession => GetSession() as CustomUserSession;
+        protected ISoundWordsConfiguration Configuration => ResolveService<ISoundWordsConfiguration>();
     }
 
     public class CustomUserSession : AuthUserSession

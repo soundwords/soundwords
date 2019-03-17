@@ -1,7 +1,5 @@
-﻿@model IEnumerable<SpeakerInfo>
+﻿@model List<SpeakerInfo>
 
-@{
-}
 <div id="custom-collapse">
     <h4 class="btn btn-lg btn-block btn-default dropdown-toggle visible-xs visible-sm" data-toggle="collapse" data-parent="#custom-collapse" data-target="#side-menu-collapse">Talere</h4>
     <h4 class="visible-md visible-lg">Talere</h4>
@@ -13,13 +11,13 @@
                     <h5 class="list-group-item-heading">
                         @if (item.HasPhoto)
                         {
-                            <img class="speakerIcon img-rounded" src="/Speaker/Photo/@(item.Uid)?maxDimension=32" alt="@item.FullName"/>
+                            <img class="speakerIcon img-rounded" src="/Speaker/Photo/@(item.Uid)?maxDimension=32" alt="@item.FullName" />
                             <span class="first-name">@item.FirstName</span>
                             <span class="last-name">@item.LastName</span>
                         }
                         else
                         {
-                            <img class="speakerIcon" src="~/images/microphone.png" alt="@item.FullName"/>
+                            <img class="speakerIcon" src="~/images/microphone.png" alt="@item.FullName" />
                             <span class="first-name">@item.FirstName</span>
                             <span class="last-name">@item.LastName</span>
                         }

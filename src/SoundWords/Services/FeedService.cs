@@ -5,6 +5,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Net;
 using System.Xml.Linq;
+using JetBrains.Annotations;
 using MoreLinq;
 using ServiceStack;
 using ServiceStack.Data;
@@ -17,11 +18,13 @@ using Properties = TagLib.Properties;
 namespace SoundWords.Services
 {
     [Route("/feed/{Speaker*}")]
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class SpeakerFeedRequest
     {
         public string Speaker { get; set; }
     }
 
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class FeedService : ServiceBase
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
@@ -44,7 +47,7 @@ namespace SoundWords.Services
             XNamespace atom = "http://www.w3.org/2005/Atom";
             string siteUrl = Request.GetApplicationUrl();
 
-            string logoUrl = string.Format("{0}/images/podcast_logo.png", siteUrl);
+            string logoUrl = $"{siteUrl}/content/images/podcast_logo.png";
             const string subscribe = @"<h4>Abonner i iTunes</h4>
 <ol>
 	<li>Start iTunes</li>
@@ -61,7 +64,6 @@ namespace SoundWords.Services
                     speaker = db.Single<DbSpeaker>(s => s.FirstName == nameInfo.FirstName && s.LastName == nameInfo.LastName && !s.Deleted);
                 }
 
-                ushort? oldest = db.Scalar<ushort?>(db.From<DbRecording>().Where(r => !r.Deleted && r.Year != null).Select(r => Sql.Min(r.Year)));
                 string description = string.Empty;
 
                 SqlExpression<DbSpeaker> query = db.From<DbSpeaker>()
@@ -100,8 +102,7 @@ namespace SoundWords.Services
                         .Select(s => s.ToSpeaker().FullName)
                         .ToSeparatedString('/')
                     let trackDescription =
-                        string.Format("{0}{1}", recording.Comment,
-                                      recording.Year != null ? " ({0})".Fmt(recording.Year) : string.Empty).PadRight(1, '-')
+                        $"{recording.Comment}{(recording.Year != null ? " ({0})".Fmt(recording.Year) : string.Empty)}".PadRight(1, '-')
                     let tagInfo = GetTag(recording)
                     let fileInfo = _fileSystem.FileInfo.FromFileName(recording.Path)
                     let titleSuffix =
@@ -109,26 +110,22 @@ namespace SoundWords.Services
                             ? " ({0}/{1})".Fmt(tagInfo.Tag.Track, tagInfo.Tag.TrackCount)
                             : string.Empty
                     let url =
-                        string.Format("{0}/Recording/Stream/{1:N}/{2}", siteUrl, recording.Uid,
-                                      fileInfo.Name.UrlEncode20())
+                        $"{siteUrl}/Recording/Stream/{recording.Uid:N}/{fileInfo.Name.UrlEncode20()}"
                     let guid =
-                        string.Format("{0}/Recording/Stream/{1:N}{2}", siteUrl, recording.Uid,
-                                      speakerFeedRequest.Speaker == null ? "/top50" : string.Empty)
+                        $"{siteUrl}/Recording/Stream/{recording.Uid:N}{(speakerFeedRequest.Speaker == null ? "/top50" : string.Empty)}"
                     select new XElement("item",
                                         new XElement("title",
-                                                     string.Format("{0}: {1}{2}", album.Name, recording.Title, titleSuffix)
+                                                     $"{album.Name}: {recording.Title}{titleSuffix}"
                                         ),
                                         new XElement(itunes + "author", speakerName
                                         ),
                                         new XElement(itunes + "subtitle",
-                                                     string.Format("{0}{1}",
-                                                                   speakerFeedRequest.Speaker == null ? string.Format("{0}: ", speakerName) : string.Empty,
-                                                                   album.Name)
+                                                     $"{(speakerFeedRequest.Speaker == null ? $"{speakerName}: " : string.Empty)}{album.Name}"
                                         ),
                                         new XElement(itunes + "summary", new XCData(trackDescription)
                                         ),
                                         new XElement("description",
-                                                     string.Format("{0}{1}{2}", trackDescription, Environment.NewLine, subscribe)
+                                                     $"{trackDescription}{Environment.NewLine}{subscribe}"
                                         ),
                                         new XElement(itunes + "image",
                                                      new XAttribute("href",
@@ -149,13 +146,24 @@ namespace SoundWords.Services
                                         )
                     );
 
-                string title = speakerFeedRequest.Speaker ?? string.Format("Siste {0}", limit);
+                string title = speakerFeedRequest.Speaker ?? $"Siste {limit}";
 
                 string link = speakerFeedRequest.Speaker != null
-                                  ? string.Format("{0}/Recording/Speaker/{1}", siteUrl, speakerFeedRequest.Speaker.UrlEncode20())
+                                  ? $"{siteUrl}/Recording/Speaker/{speakerFeedRequest.Speaker.UrlEncode20()}"
                                   : siteUrl;
 
-                string selfUrl = string.Format("{0}{1}", siteUrl, Request.RawUrl);
+                string selfUrl = $"{siteUrl}{Request.RawUrl}";
+
+                List<XElement> categories = new List<XElement>();
+                for (int i = 0; i < Configuration.PodcastCategories.Count; i++)
+                {
+                    categories.Add(new XElement(itunes + "category",
+                                                new XAttribute("text", Configuration.PodcastCategories[i]),
+                                                new XElement(itunes + "category",
+                                                             new XAttribute("text", Configuration.PodcastSubcategories[i])
+                                                )
+                                   ));
+                }
 
                 XElement element =
                     new XElement("rss",
@@ -169,50 +177,41 @@ namespace SoundWords.Services
                                                            new XAttribute("type", "application/rss+xml"),
                                                            new XAttribute(XNamespace.Xmlns + "atom", atom)
                                               ),
-                                              new XElement("title", string.Format("Sunne ord: {0}", title)
+                                              new XElement("title", $"{Configuration.SiteName}: {title}"
                                               ),
                                               new XElement("link", link
                                               ),
                                               new XElement("language", "no"
                                               ),
-                                              new XElement("copyright", "Foreningen Sunne ord"
+                                              new XElement("copyright", Configuration.CompanyName
                                               ),
-                                              new XElement(itunes + "subtitle", "... lik et tre, plantet ved rennende bekker.",
+                                              new XElement(itunes + "subtitle", Configuration.Slogan,
                                                            new XAttribute(XNamespace.Xmlns + "itunes", itunes)
                                               ),
-                                              new XElement(itunes + "author", speakerFeedRequest.Speaker ?? "Foreningen Sunne ord"
+                                              new XElement(itunes + "author", speakerFeedRequest.Speaker ?? Configuration.CompanyName
                                               ),
                                               new XElement(itunes + "summary",
-                                                           new XCData(
-                                                               WebUtility.HtmlDecode(
-                                                                   "P&aring; sunneord.no kan du lytte til bibelundervisning fra perioden mellom {0} og i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;"
-                                                                       .Fmt(oldest)))
+                                                           new XCData(WebUtility.HtmlDecode(Configuration.MetaDescription))
                                               ),
                                               new XElement("description", description
                                               ),
                                               new XElement(itunes + "owner",
-                                                           new XElement(itunes + "name", "Foreningen Sunne ord"
+                                                           new XElement(itunes + "name", Configuration.CompanyName
                                                            ),
-                                                           new XElement(itunes + "email", "post@sunneord.no"
+                                                           new XElement(itunes + "email", Configuration.CompanyEmail
                                                            )
                                               ),
                                               new XElement(itunes + "image",
                                                            new XAttribute("href", logoUrl)
                                               ),
-                                              new XElement(itunes + "category",
-                                                           new XAttribute("text", "Religion & Spirituality"),
-                                                           new XElement(itunes + "category",
-                                                                        new XAttribute("text", "Christianity")
-                                                           )
-                                              ),
+                                              categories,
                                               new XElement(itunes + "explicit", "no"
                                               ),
                                               items
                                  )
                     );
 
-                string podcastFeed = string.Format(@"<?xml version=""1.0"" encoding=""UTF-8""?>{0}{1}",
-                                                   Environment.NewLine, element);
+                string podcastFeed = $@"<?xml version=""1.0"" encoding=""UTF-8""?>{Environment.NewLine}{element}";
                 return new HttpResult(podcastFeed, "application/rss+xml");
             }
         }

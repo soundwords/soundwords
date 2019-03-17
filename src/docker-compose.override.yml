@@ -10,6 +10,14 @@ services:
       - DB_TYPE=MySQL
       - SITE_NAME=SoundWords
       - DebugMode=true
+      - "META_DESCRIPTION=P&aring; sunneord.no kan du lytte til bibelundervisning fra for mer enn et halvt &aring;rhundre siden og til i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;"
+      - "COMPANY_NAME=Foreningen Sunne ord"
+      - "COMPANY_EMAIL=post@sunneord.no"
+      - "SLOGAN=... lik et tre, plantet ved rennende bekker."
+      - "PODCAST_CATEGORIES__0=Religion & Spirituality"
+      - "PODCAST_SUBCATEGORIES__0=Christianity"
+      - "PODCAST_CATEGORIES__1=A category"
+      - "PODCAST_SUBCATEGORIES__1=A subcategory"
     ports:
       - "80"
     volumes:

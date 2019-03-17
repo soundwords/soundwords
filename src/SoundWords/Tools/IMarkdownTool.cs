@@ -1,6 +1,6 @@
 ﻿namespace SoundWords.Tools
 {
-    public interface IPageTool
+    public interface IMarkdownTool
     {
         string Get(string key);
     }

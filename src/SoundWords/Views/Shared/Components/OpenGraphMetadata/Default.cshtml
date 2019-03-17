@@ -1,0 +1,6 @@
+﻿@model Metadata
+
+@foreach (var property in Model.Data.Keys)
+{ 
+    <meta property="@property" content="@Model.Data[property]" />
+}

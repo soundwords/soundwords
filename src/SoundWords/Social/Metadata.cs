@@ -1,21 +1,16 @@
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace SoundWords.Social
 {
-    [DataContract]
-    public class OpenGraphMetaData
+    public class Metadata
     {
-        private readonly ISoundWordsConfiguration _soundWordsConfiguration;
+        public Dictionary<string, string> Data { get; set; }
+    }
 
-        public OpenGraphMetaData(ISoundWordsConfiguration soundWordsConfiguration)
-        {
-            _soundWordsConfiguration = soundWordsConfiguration;
-            SiteName = soundWordsConfiguration.SiteName;
-            Type = "website";
-            AppId = soundWordsConfiguration.FacebookAppId;
-            Image = string.Format("{0}images/metadata_logo_square.jpg", soundWordsConfiguration.SiteUrl);
-        }
-
+    [DataContract]
+    public class OpenGraphMetadata
+    {
         [DataMember(Name = "og:title")]
         public string Title { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿@model RecordingResponse
 @{
+    Layout = "_Framework";
     ViewBag.Title = "Index";
 }
 <h2>
@@ -49,14 +50,11 @@
                     @Html.ActionLink("Play", "Stream", new { id = item.RecordingId }, new { @class = "audiofile", id = "recording-" + item.RecordingId })|
                     @Html.ActionLink("Download", "Download", new { id = item.RecordingId })*@
             </td>
-            <td>
-                
-            </td>
+            <td></td>
             <td>
                 @item.Title
             </td>
-            <td>
-            </td>
+            <td></td>
             <td>
                 @item.Comment
             </td>
@@ -71,10 +69,10 @@
 </table>
 
 @section styles
-{
+    {
 }
 @section scripts
-{
+    {
     <environment names="Development">
         <script src="~/lib/mediaelement/build/mediaelement-and-player.js"></script>
     </environment>
@@ -130,7 +128,7 @@
                     $("#rebuild").removeClass('disabled');
                 });
 
- 
+
             });
 
             $('.audiofile').click(function (event) {
@@ -154,12 +152,9 @@
 }
 
 @section metadata
-{
-
+    {
     @{
-        OpenGraphMetaData openGraphMetaData = ResolveService<OpenGraphMetaData>();
-        openGraphMetaData.Title = ViewBag.Title;
-        openGraphMetaData.Url = Request.ToFullUrl();
+        OpenGraphMetadata metadata = new OpenGraphMetadata { Title = ViewBag.Title };
     }
-    <partial model="openGraphMetaData" name="MetaDataPartial"/>
+    <vc:open-graph-metadata data="@metadata"></vc:open-graph-metadata>
 }

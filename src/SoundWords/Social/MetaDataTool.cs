@@ -7,11 +7,11 @@ namespace SoundWords.Social
 {
     public class MetaDataTool : IMetaDataTool
     {
-        public Dictionary<string, string> GetMetaData(object metaData)
+        public Metadata GetMetaData(object metaData)
         {
             Type type = metaData.GetType();
 
-            var metaDataDictionary = new Dictionary<string, string>();
+            var metadataDictionary = new Dictionary<string, string>();
             foreach (PropertyInfo property in type.GetProperties())
             {
                 string propertyName = property.GetCustomAttribute<DataMemberAttribute>().Name;
@@ -22,15 +22,10 @@ namespace SoundWords.Social
                     continue;
                 }
 
-                metaDataDictionary.Add(propertyName, content);
+                metadataDictionary.Add(propertyName, content);
             }
 
-            return metaDataDictionary;
+            return new Metadata {Data = metadataDictionary};
         }
-    }
-
-    public interface IMetaDataTool
-    {
-        Dictionary<string, string> GetMetaData(object metaData);
     }
 }

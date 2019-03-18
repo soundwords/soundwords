@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <base href="@Configuration.SiteUrl">
+    <base href="@Configuration.SiteUrl/">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -165,11 +165,11 @@
     </environment>
     <script type="text/javascript">
         function createRegisterForm() {
-            createRegisterFormBase('@(new Register().ToPostUrl())', '@(new Authenticate().ToPostUrl())');
+            createRegisterFormBase('@Configuration.SiteUrl@(new Register().ToPostUrl())', '@Configuration.SiteUrl@(new Authenticate().ToPostUrl())');
         }
 
         function createLoginForm() {
-            createLoginFormBase('@(new Register().ToPostUrl())', '@(new Authenticate().ToPostUrl())');
+            createLoginFormBase('@Configuration.SiteUrl@(new Register().ToPostUrl())', '@Configuration.SiteUrl@(new Authenticate().ToPostUrl())');
         }
         $(function () {
             $(".day-mode").click(function (e) {

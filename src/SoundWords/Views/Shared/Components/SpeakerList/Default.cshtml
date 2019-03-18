@@ -7,11 +7,11 @@
         @foreach (SpeakerInfo item in Model)
         {
             <li class="list-group-item@(item.Selected ? " active" : "") dropdown-toggle">
-                <a class="anchor-unstyled speaker-name" href="/Recording/Speaker/@item.FullName.UrlEncode20()/">
+                <a class="anchor-unstyled speaker-name" href="Recording/Speaker/@item.FullName.UrlEncode20()/">
                     <h5 class="list-group-item-heading">
                         @if (item.HasPhoto)
                         {
-                            <img class="speakerIcon img-rounded" src="/Speaker/Photo/@(item.Uid)?maxDimension=32" alt="@item.FullName" />
+                            <img class="speakerIcon img-rounded" src="Speaker/Photo/@(item.Uid)?maxDimension=32" alt="@item.FullName" />
                             <span class="first-name">@item.FirstName</span>
                             <span class="last-name">@item.LastName</span>
                         }

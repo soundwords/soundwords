@@ -9,7 +9,7 @@
         @foreach (var albumWithSpeakers in Model)
         {
             <li>
-                <a class="selected" href="/Recording/Speaker/@albumWithSpeakers.Speakers.FirstOrDefault()?.FullName.UrlEncode20()/#!/@albumWithSpeakers.Album.Name.UrlEncode20()">
+                <a class="selected" href="Recording/Speaker/@albumWithSpeakers.Speakers.FirstOrDefault()?.FullName.UrlEncode20()/#!/@albumWithSpeakers.Album.Name.UrlEncode20()">
                     @albumWithSpeakers.Album.CreatedOn.ToString("d", new CultureInfo("nb-NO")) @albumWithSpeakers.Album.Name <i>(@string.Join("/", albumWithSpeakers.Speakers.Select(s => s.FullName)))</i>
                 </a>
             </li>

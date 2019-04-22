@@ -52,7 +52,12 @@ namespace SoundWords
                                         });
             }
 
-            app.UseStaticFiles();
+
+            string pathBase = Configuration["PATH_BASE"];
+            if (pathBase != null)
+            {
+                app.UsePathBase(pathBase);
+            }
 
             app.UseServiceStack(serviceProvider.GetService<AppHostBase>());       
         }

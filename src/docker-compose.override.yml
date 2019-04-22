@@ -9,6 +9,7 @@ services:
       - CONNECTION_STRING=Server=db;User=soundwords;Database=soundwords;Password=secret;
       - DB_TYPE=MySQL
       - SITE_NAME=SoundWords
+      - SITE_URL=http://localhost:45080
       - DebugMode=true
       - "META_DESCRIPTION=P&aring; sunneord.no kan du lytte til bibelundervisning fra for mer enn et halvt &aring;rhundre siden og til i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;"
       - "COMPANY_NAME=Foreningen Sunne ord"
@@ -19,7 +20,7 @@ services:
       - "PODCAST_CATEGORIES__1=A category"
       - "PODCAST_SUBCATEGORIES__1=A subcategory"
     ports:
-      - "80"
+      - "45080:80"
     volumes:
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

@@ -53,8 +53,11 @@ namespace SoundWords
             }
 
 
-            //app.UseStaticFiles(Configuration["PATH_BASE"]);
-            app.UsePathBase("/audio");
+            string pathBase = Configuration["PATH_BASE"];
+            if (pathBase != null)
+            {
+                app.UsePathBase(pathBase);
+            }
 
             app.UseServiceStack(serviceProvider.GetService<AppHostBase>());       
         }

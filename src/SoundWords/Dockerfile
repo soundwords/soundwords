@@ -1,8 +1,6 @@
-FROM microsoft/dotnet:2.2-aspnetcore-runtime AS base
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
 EXPOSE 80
-
-FROM servicestack AS servicestack
 
 FROM node AS node
 WORKDIR /src
@@ -14,14 +12,13 @@ RUN echo '{ "allow_root": true }' > /root/.bowerrc
 RUN bower install
 RUN npm install
 
-FROM microsoft/dotnet:2.2-sdk AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY SoundWords/SoundWords.csproj SoundWords/
 RUN dotnet restore SoundWords/SoundWords.csproj
 COPY --from=node /src/bower_components /src/SoundWords/wwwroot/lib
 COPY --from=node /src/node_modules /src/SoundWords/node_modules
 COPY . .
-COPY --from=servicestack /ServiceStack /lib/ServiceStack
 WORKDIR /src/SoundWords
 RUN dotnet build SoundWords.csproj -c Release -o /app
 

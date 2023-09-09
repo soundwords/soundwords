@@ -6,13 +6,13 @@ using System.Linq;
 using System.Net;
 using System.Xml.Linq;
 using JetBrains.Annotations;
-using MoreLinq;
 using ServiceStack;
 using ServiceStack.Data;
 using ServiceStack.OrmLite;
 using SoundWords.Models;
 using SoundWords.Tools;
 using TagLib;
+using File = TagLib.File;
 using Properties = TagLib.Properties;
 
 namespace SoundWords.Services
@@ -104,7 +104,7 @@ namespace SoundWords.Services
                     let trackDescription =
                         $"{recording.Comment}{(recording.Year != null ? " ({0})".Fmt(recording.Year) : string.Empty)}".PadRight(1, '-')
                     let tagInfo = GetTag(recording)
-                    let fileInfo = _fileSystem.FileInfo.FromFileName(recording.Path)
+                    let fileInfo = _fileSystem.FileInfo.New(recording.Path)
                     let titleSuffix =
                         tagInfo.Tag.TrackCount > 1
                             ? " ({0}/{1})".Fmt(tagInfo.Tag.Track, tagInfo.Tag.TrackCount)

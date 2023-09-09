@@ -82,7 +82,7 @@ namespace SoundWords.Tools
 
         private static string GetFullProtocol()
         {
-            return string.Format("{0}://", SoundWordsAppHost.Configuration.Protocol);
+            return string.Format("{0}://", SoundWordsAppHost.SoundWordsConfiguration.Protocol);
         }
 
         public static string SetFragment(this string url, string fragment)

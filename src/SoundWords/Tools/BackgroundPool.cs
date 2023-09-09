@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Autofac;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using ServiceStack.Logging;
 
 namespace SoundWords.Tools
@@ -13,12 +13,12 @@ namespace SoundWords.Tools
     public class BackgroundPool : IBackgroundPool
     {
         private readonly ILog _logger;
-        private readonly IApplicationLifetime _lifetime;
+        private readonly IHostApplicationLifetime _lifetime;
         private readonly IComponentContext _componentContext;
         private readonly object _currentTasksLock = new object();
         private readonly List<Task> _currentTasks = new List<Task>();
 
-        public BackgroundPool(ILogFactory logFactory, IApplicationLifetime lifetime, IComponentContext componentContext)
+        public BackgroundPool(ILogFactory logFactory, IHostApplicationLifetime lifetime, IComponentContext componentContext)
         {
             _logger = logFactory.GetLogger(GetType());
             _lifetime = lifetime;

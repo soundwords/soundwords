@@ -91,18 +91,18 @@ namespace SoundWords.Services
 
             using (IDbConnection db = _dbConnectionFactory.Open())
             {
-                DirectoryInfoBase directoryInfo = _fileSystem.DirectoryInfo.FromDirectoryName(folderPath);
-                FileInfoBase[] files = directoryInfo.GetFiles("*.mp3", SearchOption.AllDirectories);
+                IDirectoryInfo directoryInfo = _fileSystem.DirectoryInfo.New(folderPath);
+                IFileInfo[] files = directoryInfo.GetFiles("*.mp3", SearchOption.AllDirectories);
 
                 int index = 0;
-                foreach (IGrouping<string, FileInfoBase> albumFiles in files.GroupBy(f => f.DirectoryName))
+                foreach (IGrouping<string, IFileInfo> albumFiles in files.GroupBy(f => f.DirectoryName))
                 {
                     using (IDbTransaction transaction = db.OpenTransaction())
                     {
                         _logger.Debug("Fetching album");
                         DbAlbum album = db.Single<DbAlbum>(a => a.Path == albumFiles.Key);
 
-                        foreach (FileInfoBase file in albumFiles)
+                        foreach (IFileInfo file in albumFiles)
                         {
                             int progress =
                                 (int) Math.Round((index + 1) / (double) files.Length * (endPercent - startPercent)) +
@@ -231,7 +231,7 @@ namespace SoundWords.Services
 
         private void ScanForSpeakerInfo(SubscriptionInfo subscriptionInfo, string recordingsFolder, bool restricted, int progressFrom, int progressTo)
         {
-            ILookup<string, DirectoryInfoBase> directories = _fileSystem.DirectoryInfo.FromDirectoryName(recordingsFolder)
+            ILookup<string, IDirectoryInfo> directories = _fileSystem.DirectoryInfo.New(recordingsFolder)
                                                                         .GetDirectories("*", SearchOption.AllDirectories)
                                                                         .ToLookup(d => d.Name);
 
@@ -246,7 +246,7 @@ namespace SoundWords.Services
                     string fullName = speaker.ToSpeaker().FullName;
                     if (directories.Contains(fullName))
                     {
-                        FileInfoBase photo = directories[fullName]
+                        IFileInfo photo = directories[fullName]
                             .SelectMany(d => d.GetFiles("*.jpg"))
                             .OrderByDescending(f => f.Length)
                             .FirstOrDefault();
@@ -257,7 +257,7 @@ namespace SoundWords.Services
                             db.Update(speaker);
                         }
 
-                        FileInfoBase markdownFile = directories[fullName]
+                        IFileInfo markdownFile = directories[fullName]
                             .SelectMany(d => d.GetFiles("*.md"))
                             .OrderByDescending(f => f.Length)
                             .FirstOrDefault();

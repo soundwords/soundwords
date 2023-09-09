@@ -82,7 +82,7 @@
     <script type="text/javascript">
         $().ready(function () {
             var activeSub;
-            var source = new EventSource('/event-stream?channel=refresh&t=' + new Date().getTime());
+            var source = new EventSource('event-stream?channel=refresh&t=' + new Date().getTime());
             $(source).handleServerEvents({
                 handlers: {
                     onConnect: function (subscription) {
@@ -121,7 +121,7 @@
 
                 $('#rebuild').addClass('disabled');
 
-                $.post('/Recording/Rebuild', { from: activeSub.id }, function() {
+                $.post('Recording/Rebuild', { from: activeSub.id }, function() {
                 }).fail(function (e) {
                     if (e.responseJSON && e.responseJSON.responseStatus)
                         console.log(e.responseJSON.responseStatus.message);

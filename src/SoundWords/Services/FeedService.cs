@@ -45,7 +45,7 @@ namespace SoundWords.Services
             const int limit = 50;
             XNamespace itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
             XNamespace atom = "http://www.w3.org/2005/Atom";
-            string siteUrl = Request.GetApplicationUrl();
+            string siteUrl = Configuration.SiteUrl;
 
             string logoUrl = $"{siteUrl}/content/images/podcast_logo.png";
             const string subscribe = @"<h4>Abonner i iTunes</h4>

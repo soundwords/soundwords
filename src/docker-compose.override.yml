@@ -22,8 +22,8 @@ services:
     ports:
       - "45080:80"
     volumes:
-      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+#      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+#      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ../lib/snd/public:/var/audio/public
       - ../lib/snd/restricted:/var/audio/restricted
       - ../custom:/var/custom

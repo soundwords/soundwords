@@ -82,8 +82,8 @@ namespace SoundWords
                                         {
                                             IdleTimeout = serverEventsFeature.IdleTimeout,
                                             HouseKeepingInterval = serverEventsFeature.HouseKeepingInterval,
-                                            OnSubscribe = serverEventsFeature.OnSubscribe,
-                                            OnUnsubscribe = serverEventsFeature.OnUnsubscribe,
+                                            OnSubscribeAsync = serverEventsFeature.OnSubscribeAsync,
+                                            OnUnsubscribeAsync = serverEventsFeature.OnUnsubscribeAsync,
                                             NotifyChannelOfSubscriptions = serverEventsFeature.NotifyChannelOfSubscriptions,
                                             OnError = serverEventsFeature.OnError
                                         };
@@ -98,7 +98,7 @@ namespace SoundWords
                 case "SQLServer":
                     return SqlServerDialect.Provider;
                 case "MySQL":
-                    return MySqlDialect.Provider;
+                    return MySqlConnectorDialect.Provider;
                 case "PostgreSQL":
                     return PostgreSqlDialect.Provider;
                 default:

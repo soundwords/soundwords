@@ -8,14 +8,13 @@ using ServiceStack.Logging;
 using ServiceStack;
 using ServiceStack.Data;
 using ServiceStack.OrmLite;
-using SixLabors.Primitives;
 using SoundWords.Models;
 using SoundWords.Social;
 using SoundWords.Tools;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp;
-using MoreLinq;
 using SixLabors.ImageSharp.Processing;
+using static MoreLinq.Extensions.ToDelimitedStringExtension;
 
 namespace SoundWords.Services
 {

@@ -1,5 +1,4 @@
 ﻿using ServiceStack.Mvc;
-using SoundWords.Services;
 
 namespace SoundWords
 {
@@ -9,7 +8,6 @@ namespace SoundWords
 
     public abstract class ViewBase<T> : ViewPage<T>
     {
-        protected CustomUserSession UserSession => GetSession() as CustomUserSession;
         protected ISoundWordsConfiguration Configuration => ResolveService<ISoundWordsConfiguration>();
     }
 }

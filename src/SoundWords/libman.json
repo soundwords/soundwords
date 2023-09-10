@@ -44,7 +44,7 @@
     },
     {
       "library": "mediaelement-plugins@2.6.7",
-      "destination": "wwwroot\\lib\\mediaelement-plugins"
+      "destination": "wwwroot/lib/mediaelement-plugins"
     }
   ]
 }

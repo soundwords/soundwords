@@ -203,12 +203,14 @@
     {
     <environment names="Development">
         <script src="~/lib/mediaelement/build/mediaelement-and-player.js"></script>
+        <script src="~/lib/mediaelement-plugins/dist/speed/speed.js"></script>
         <!-- Social Share Kit JS -->
         <script type="text/javascript" src="~/lib/social-share-kit/dist/js/social-share-kit.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/mediaelement/build/mediaelement-and-player.min.js"></script>
-        <!-- Social Share Kit JS -->
+        <script src="~/lib/mediaelement-plugins/dist/speed/speed.min.js"></script>
+            <!-- Social Share Kit JS -->
         <script type="text/javascript" src="~/lib/social-share-kit/dist/js/social-share-kit.min.js"></script>
     </environment>
     @if (Configuration.PiwikEnabled)
@@ -325,6 +327,8 @@
 
                     $(this).find(".mediaelement").mediaelementplayer({
                         audioWidth: '100%',
+                        iconSprite: 'lib/mediaelement/build/mejs-controls.svg',
+                        features: [ 'playpause', 'current', 'progress', 'duration', 'tracks', 'volume', 'speed' ],
                         success: function(mediaElement) {
                             @if (Configuration.PiwikEnabled)
                             {

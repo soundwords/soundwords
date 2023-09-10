@@ -20,14 +20,16 @@
     }
     <environment names="Development">
         <link href="~/lib/roboto-fontface/css/roboto/roboto-fontface.css" rel="stylesheet"/>
-        <link href="~/lib/WebFont-OpenSans/css/stylesheet.css" rel="stylesheet"/>
+        <link href="~/lib/opensans-npm-webfont/style.css" rel="stylesheet"/>
         <link href="~/lib/font-awesome/css/font-awesome.css" rel="stylesheet"/>
         <link href="~/lib/mediaelement/build/mediaelementplayer.css" rel="stylesheet"/>
+        <link href="~/lib/mediaelement-plugins/dist/speed/speed.css" rel="stylesheet"/>
     </environment>
     <environment names="Staging,Production">
         <link href="~/css/vendor.min.css" rel="stylesheet"/>
         <link href="~/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet"/>
         <link href="~/lib/mediaelement/build/mediaelementplayer.min.css" rel="stylesheet"/>
+        <link href="~/lib/mediaelement-plugins/dist/speed/speed.min.css" rel="stylesheet"/>
     </environment>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -152,16 +154,16 @@
     <environment names="Development">
         <script src="/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/lib/js-cookie/src/js.cookie.js"></script>
+        <script src="~/lib/js-cookie/dist/js.cookie.js"></script>
         <script src="~/js/site.js"></script>
-        <script src="~/lib/ss-utils.js"></script>
+        <script src="~/lib/ss-utils/ss-utils.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/jquery/dist/jquery.min.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="~/js/site.min.js"></script>
         <script src="~/js/vendor.min.js"></script>
-        <script src="~/lib/ss-utils.min.js"></script>
+        <script src="~/lib/ss-utils/ss-utils.min.js"></script>
     </environment>
     <script type="text/javascript">
         function createRegisterForm() {

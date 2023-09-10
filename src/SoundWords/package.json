@@ -1,9 +1,0 @@
-{
-  "version": "0.5.0",
-  "name": "soundwords",
-  "private": true,
-  "dependencies": {
-    "ss-utils": "^0.2.0"
-  },
-  "devDependencies": {}
-}

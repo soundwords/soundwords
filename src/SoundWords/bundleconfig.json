@@ -12,7 +12,7 @@
     "outputFileName": "wwwroot/css/vendor.min.css",
     "inputFiles": [
       "wwwroot/lib/roboto-fontface/css/roboto/roboto-fontface.css",
-      "wwwroot/lib/WebFont-OpenSans/css/stylesheet.css"
+      "wwwroot/lib/opensans-npm-webfont/style.css"
     ]
   },
   {
@@ -43,28 +43,7 @@
   {
     "outputFileName": "wwwroot/js/vendor.min.js",
     "inputFiles": [
-      "wwwroot/lib/js-cookie/src/js.cookie.js"
-    ],
-    "minify": {
-      "enabled": true,
-      "renameLocals": true
-    },
-    "sourceMap": false
-  },
-  {
-    "outputFileName": "wwwroot/lib/ss-utils.js",
-    "inputFiles": [
-      "node_modules/ss-utils/ss-utils.js"
-    ],
-    "minify": {
-      "enabled": false
-    },
-    "sourceMap": false
-  },
-  {
-    "outputFileName": "wwwroot/lib/ss-utils.min.js",
-    "inputFiles": [
-      "node_modules/ss-utils/ss-utils.js"
+      "wwwroot/lib/js-cookie/dist/js.cookie.js"
     ],
     "minify": {
       "enabled": true,

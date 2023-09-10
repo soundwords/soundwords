@@ -12,7 +12,7 @@
     "outputFileName": "wwwroot/css/vendor.min.css",
     "inputFiles": [
       "wwwroot/lib/roboto-fontface/css/roboto/roboto-fontface.css",
-      "wwwroot/lib/@fontsource/open-sans/latin-ext-300.css"
+      "wwwroot/lib/@fontsource/open-sans/300.css"
     ]
   },
   {

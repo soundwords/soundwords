@@ -29,10 +29,10 @@
     {
       "library": "roboto-fontface@0.10.0",
       "destination": "wwwroot/lib/roboto-fontface"
-    },
+    },  
     {
-      "library": "opensans-npm-webfont@1.0.0",
-      "destination": "wwwroot/lib/opensans-npm-webfont"
+      "library": "@fontsource/open-sans@5.0.12",
+      "destination": "wwwroot/lib/@fontsource/open-sans"
     },
     {
       "library": "jquery@3.7.1",

@@ -5,6 +5,7 @@ EXPOSE 80
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY SoundWords/SoundWords.csproj SoundWords/
+COPY SoundWords/libman.json SoundWords/
 RUN dotnet restore SoundWords/SoundWords.csproj
 COPY . .
 WORKDIR /src/SoundWords

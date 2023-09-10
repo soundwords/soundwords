@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "defaultProvider": "jsdelivr",
+  "libraries": [
+    {
+      "library": "ss-utils@0.2.7",
+      "destination": "wwwroot/lib/ss-utils"
+    },
+    {
+      "library": "font-awesome@4.7.0",
+      "destination": "wwwroot/lib/font-awesome"
+    },
+    {
+      "library": "bootstrap@3.4.1",
+      "destination": "wwwroot/lib/bootstrap"
+    },
+    {
+      "library": "js-cookie@3.0.5",
+      "destination": "wwwroot/lib/js-cookie"
+    },
+    {
+      "library": "mediaelement@4.2.17",
+      "destination": "wwwroot/lib/mediaelement"
+    },
+    {
+      "library": "moment@2.29.4",
+      "destination": "wwwroot/lib/moment"
+    },
+    {
+      "library": "roboto-fontface@0.10.0",
+      "destination": "wwwroot/lib/roboto-fontface"
+    },
+    {
+      "library": "opensans-npm-webfont@1.0.0",
+      "destination": "wwwroot/lib/opensans-npm-webfont"
+    },
+    {
+      "library": "jquery@3.7.1",
+      "destination": "wwwroot/lib/jquery"
+    },
+    {
+      "library": "social-share-kit@1.0.15",
+      "destination": "wwwroot/lib/social-share-kit"
+    },
+    {
+      "library": "mediaelement-plugins@2.6.7",
+      "destination": "wwwroot/lib/mediaelement-plugins"
+    }
+  ]
+}

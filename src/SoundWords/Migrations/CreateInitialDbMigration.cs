@@ -2,7 +2,7 @@
 
 namespace SoundWords.Migrations
 {
-    [Migration(0)]
+    [Migration(0), FluentMigrator.Tags("Domain")]
     public class CreateInitialDbMigration : ForwardOnlyMigration
     {
         public override void Up()

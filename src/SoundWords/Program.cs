@@ -99,18 +99,6 @@ WebApplication app = builder.Build();
 using (IServiceScope scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<IDbMigrator>().Migrate();
-
-    AuthDbContext authDb = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-    if (dbType == "PostgreSQL")
-    {
-        authDb.Database.Migrate();
-    }
-    else
-    {
-        // EF Core Identity migrations are currently Postgres-only (see Auth/Migrations).
-        // Fall back to EnsureCreated for MySQL/SQLServer/SQLite until per-dialect migrations are added.
-        authDb.Database.EnsureCreated();
-    }
 }
 
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))

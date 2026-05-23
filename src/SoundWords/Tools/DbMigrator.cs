@@ -1,4 +1,5 @@
 using FluentMigrator.Runner;
+using FluentMigrator.Runner.Initialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,7 +8,7 @@ namespace SoundWords.Tools;
 
 public class DbMigrator : IDbMigrator
 {
-    private static readonly HashSet<string> AppliedConnectionStrings = new();
+    private static readonly HashSet<string> AppliedRuns = new();
     private static readonly object Gate = new();
 
     private readonly IConfiguration _configuration;
@@ -22,11 +23,24 @@ public class DbMigrator : IDbMigrator
     public void Migrate()
     {
         string? dbType = _configuration["DB_TYPE"];
-        string? connectionString = _configuration["CONNECTION_STRING"];
+        string? mainConnection = _configuration["CONNECTION_STRING"];
+        string? usersConnection = _configuration["CONNECTION_STRING_USERS"] ?? mainConnection;
 
+        RunTagged(dbType, mainConnection, "Domain");
+        RunTagged(dbType, usersConnection, "Users");
+    }
+
+    private void RunTagged(string? dbType, string? connectionString, string tag)
+    {
+        if (connectionString == null)
+        {
+            return;
+        }
+
+        string runKey = $"{tag}::{connectionString}";
         lock (Gate)
         {
-            if (connectionString != null && !AppliedConnectionStrings.Add(connectionString))
+            if (!AppliedRuns.Add(runKey))
             {
                 return;
             }
@@ -43,6 +57,7 @@ public class DbMigrator : IDbMigrator
                                                                   .ScanIn(typeof(DbMigrator).Assembly)
                                                                   .For.Migrations();
                                                             })
+                                           .Configure<RunnerOptions>(o => o.Tags = new[] { tag })
                                            .BuildServiceProvider(false);
 
         using IServiceScope scope = serviceProvider.CreateScope();

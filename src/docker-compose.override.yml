@@ -45,7 +45,8 @@ services:
     environment:
       - ACCEPT_EULA=Y
     ports:
-      - "45341:80"
+      - "45341:80"     # Seq UI
+      - "5341:5341"    # Seq ingest (so `dotnet run` outside compose can post here)
 
 #volumes:
 #  db-data:

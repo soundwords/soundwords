@@ -17,6 +17,10 @@ using SoundWords.Tools;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// Surface Serilog's own diagnostics on stderr so misconfigured sinks
+// (bad SEQ_URL, 401, network errors) don't fail silently.
+Serilog.Debugging.SelfLog.Enable(Console.Error);
+
 builder.Host.UseSerilog((context, loggerConfiguration) =>
                         {
                             loggerConfiguration.MinimumLevel.Debug()
@@ -32,6 +36,11 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
                             {
                                 string? seqApiKey = context.Configuration["SEQ_API_KEY"];
                                 loggerConfiguration.WriteTo.Seq(seqUrl, apiKey: seqApiKey);
+                                Console.WriteLine($"[Serilog] Seq sink enabled → {seqUrl}");
+                            }
+                            else
+                            {
+                                Console.WriteLine("[Serilog] SEQ_URL not set; Seq sink disabled.");
                             }
                         });
 

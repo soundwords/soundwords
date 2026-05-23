@@ -31,6 +31,7 @@ public class FeedController : SoundWordsController
     }
 
     [HttpGet("/feed/{**speaker}")]
+    [HttpHead("/feed/{**speaker}")]
     public IActionResult Index(string? speaker)
     {
         bool includeRestricted = IncludeRestricted;

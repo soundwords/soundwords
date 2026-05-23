@@ -198,6 +198,7 @@ public class RecordingController : SoundWordsController
     }
 
     [HttpGet("/Recording/Stream/{**id}")]
+    [HttpHead("/Recording/Stream/{**id}")]
     public IActionResult Stream(string id)
     {
         if (string.IsNullOrEmpty(id))
@@ -221,6 +222,7 @@ public class RecordingController : SoundWordsController
     }
 
     [HttpGet("/Recording/Download/{uid}")]
+    [HttpHead("/Recording/Download/{uid}")]
     public IActionResult Download(string uid)
     {
         if (string.IsNullOrEmpty(uid))

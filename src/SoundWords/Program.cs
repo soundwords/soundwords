@@ -8,6 +8,7 @@ using LinqToDB.AspNet.Logging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Serilog;
 using Serilog.Events;
 using SoundWords.Auth;
@@ -135,6 +136,21 @@ else
 
 app.UseSerilogRequestLogging();
 app.UseStaticFiles();
+
+// Mount {CUSTOM_FOLDER}/content at /content — mirrors the FileSystemMapping
+// the old AppHost used so site-specific images, logos, RSS artwork, etc.
+// can live outside the deployed wwwroot.
+ISoundWordsConfiguration soundWordsConfiguration =
+    app.Services.GetRequiredService<ISoundWordsConfiguration>();
+string contentRoot = Path.Combine(soundWordsConfiguration.CustomFolder, "content");
+if (Directory.Exists(contentRoot))
+{
+    app.UseStaticFiles(new StaticFileOptions
+                       {
+                           FileProvider = new PhysicalFileProvider(contentRoot),
+                           RequestPath = "/content"
+                       });
+}
 
 string? pathBase = builder.Configuration["PATH_BASE"];
 if (pathBase != null)

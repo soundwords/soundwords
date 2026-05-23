@@ -70,6 +70,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
        .AddEntityFrameworkStores<AuthDbContext>()
        .AddDefaultTokenProviders();
 
+builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, LegacyAwarePasswordHasher>();
+
 builder.Services.ConfigureApplicationCookie(o =>
                                             {
                                                 o.LoginPath = "/Account/Login";

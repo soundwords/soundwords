@@ -52,15 +52,25 @@ public class SoundWordsDb : DataConnection
     private static MappingSchema BuildMappingSchema()
     {
         MappingSchema schema = new();
-        schema.SetConverter<List<string>?, string?>(list => list == null ? null : JsonSerializer.Serialize(list));
+        schema.SetConverter<List<string>?, string?>(SerializeStringList);
         schema.SetConverter<string?, List<string>?>(DeserializeStringList);
         return schema;
     }
 
     /// <summary>
-    /// Reads a <see cref="List{String}"/> stored either as JSON (current format)
-    /// or as ServiceStack JSV (legacy format from before the rewrite). New writes
-    /// always use JSON, so rows migrate to JSON on the next save.
+    /// Serialises <see cref="List{String}"/> columns in ServiceStack JSV format,
+    /// matching what the legacy app produces, so both apps can read each other's
+    /// writes during the beta cutover period.
+    /// </summary>
+    internal static string? SerializeStringList(List<string>? value)
+    {
+        return value == null ? null : TypeSerializer.SerializeToString(value);
+    }
+
+    /// <summary>
+    /// Reads a <see cref="List{String}"/> stored as either JSV (legacy + current
+    /// writes) or JSON (briefly written during the rewrite). JSON is tried first
+    /// because System.Text.Json is strict and fails fast on JSV input.
     /// </summary>
     internal static List<string>? DeserializeStringList(string? value)
     {

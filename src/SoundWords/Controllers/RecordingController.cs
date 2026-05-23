@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 using SoundWords.Data;
 using SoundWords.Filters;
 using SoundWords.Models;
@@ -363,14 +361,22 @@ public class RecordingController : SoundWordsController
         return PhysicalFile(cached.FullName, GetMimeType(cached.Name));
     }
 
-    private void CreateCacheFile(string albumArtPath, string cacheFileName, int maxDimension)
+    private void CreateCacheFile(string sourcePath, string cacheFileName, int maxDimension)
     {
-        _logger.LogDebug("Resizing image {Path} to size {Size}", albumArtPath, maxDimension);
+        _logger.LogDebug("Resizing image {Path} to size {Size}", sourcePath, maxDimension);
         const int quality = 70;
-        JpegEncoder jpegEncoder = new() { Quality = quality };
-        Size size = new(maxDimension, 0);
-        using Image image = Image.Load(albumArtPath);
-        image.Mutate(x => x.Resize(size));
-        image.Save(cacheFileName, jpegEncoder);
+
+        using SKBitmap source = SKBitmap.Decode(sourcePath)
+                                ?? throw new InvalidOperationException($"Failed to decode image: {sourcePath}");
+
+        // Match the old ImageSharp behaviour: width = maxDimension, height auto-scaled to preserve aspect ratio.
+        int targetWidth = Math.Min(maxDimension, source.Width);
+        int targetHeight = (int)Math.Round(source.Height * ((double)targetWidth / source.Width));
+
+        using SKBitmap resized = source.Resize(new SKImageInfo(targetWidth, targetHeight), SKSamplingOptions.Default);
+        using SKImage image = SKImage.FromBitmap(resized);
+        using SKData encoded = image.Encode(SKEncodedImageFormat.Jpeg, quality);
+        using FileStream output = System.IO.File.Create(cacheFileName);
+        encoded.SaveTo(output);
     }
 }

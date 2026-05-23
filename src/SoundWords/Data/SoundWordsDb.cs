@@ -26,7 +26,7 @@ public class SoundWordsDb : DataConnection
         return dbType switch
         {
             "PostgreSQL" => ProviderName.PostgreSQL,
-            "MySQL" => ProviderName.MySqlConnector,
+            "MySQL" => ProviderName.MySql80MySqlConnector,
             "SQLServer" => ProviderName.SqlServer,
             "SQLite" => ProviderName.SQLiteMS,
             _ => throw new ArgumentOutOfRangeException(nameof(dbType), "The database type is not supported")

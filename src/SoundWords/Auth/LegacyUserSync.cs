@@ -1,4 +1,5 @@
 using LinqToDB;
+using LinqToDB.Async;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
 using Microsoft.Extensions.Configuration;
@@ -48,7 +49,7 @@ public sealed class LegacyUserSync : ILegacyUserSync
             return;
         }
 
-        using DataConnection db = new(SoundWordsDb.GetProvider(dbType), usersConnection);
+        using DataConnection db = new(new DataOptions().UseConnectionString(SoundWordsDb.GetProvider(dbType), usersConnection));
 
         List<LegacyUserAuthRow> legacyUsers;
         try

@@ -17,14 +17,22 @@ using SoundWords.Tools;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((_, loggerConfiguration) =>
+builder.Host.UseSerilog((context, loggerConfiguration) =>
                         {
                             loggerConfiguration.MinimumLevel.Debug()
                                                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                                                .Enrich.FromLogContext()
+                                               .Enrich.WithProperty("Application", "SoundWords")
                                                .WriteTo.Console(
                                                    outputTemplate:
                                                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext} {Message}{NewLine}{Exception}");
+
+                            string? seqUrl = context.Configuration["SEQ_URL"];
+                            if (!string.IsNullOrEmpty(seqUrl))
+                            {
+                                string? seqApiKey = context.Configuration["SEQ_API_KEY"];
+                                loggerConfiguration.WriteTo.Seq(seqUrl, apiKey: seqApiKey);
+                            }
                         });
 
 string dbType = builder.Configuration["DB_TYPE"]

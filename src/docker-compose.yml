@@ -37,6 +37,10 @@ services:
       - PIWIK_DOMAINS=${PIWIK_DOMAINS-}
       - PIWIK_SITE_ID=${PIWIK_SITE_ID-}
 
+      # --- Structured logging (Seq) — set SEQ_URL to enable. ---
+      - SEQ_URL=${SEQ_URL-}
+      - SEQ_API_KEY=${SEQ_API_KEY-}
+
       # --- Podcast feed iTunes categories (paired) ---
       - PODCAST_CATEGORIES__0=${PODCAST_CATEGORIES__0-}
       - PODCAST_SUBCATEGORIES__0=${PODCAST_SUBCATEGORIES__0-}

@@ -4,6 +4,7 @@ services:
   soundwords:
     depends_on:
       - db
+      - seq
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - CONNECTION_STRING=Server=db;User=soundwords;Database=soundwords;Password=secret;
@@ -11,6 +12,7 @@ services:
       - SITE_NAME=SoundWords
       - SITE_URL=http://localhost:45080
       - DebugMode=true
+      - SEQ_URL=http://seq:5341
       - "META_DESCRIPTION=P&aring; sunneord.no kan du lytte til bibelundervisning fra for mer enn et halvt &aring;rhundre siden og til i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;"
       - "COMPANY_NAME=Foreningen Sunne ord"
       - "COMPANY_EMAIL=post@sunneord.no"
@@ -37,6 +39,13 @@ services:
       - MYSQL_PASSWORD=secret
 #    volumes:
 #      db-data:/var/lib/mysql
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "45341:80"
 
 #volumes:
 #  db-data:

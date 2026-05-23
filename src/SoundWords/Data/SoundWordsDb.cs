@@ -1,8 +1,10 @@
-using System.Text.Json;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.Mapping;
+using ServiceStack.Text;
 using SoundWords.Models;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+using JsonException = System.Text.Json.JsonException;
 
 namespace SoundWords.Data;
 
@@ -49,11 +51,31 @@ public class SoundWordsDb : DataConnection
 
     private static MappingSchema BuildMappingSchema()
     {
-        MappingSchema schema = new MappingSchema();
+        MappingSchema schema = new();
         schema.SetConverter<List<string>?, string?>(list => list == null ? null : JsonSerializer.Serialize(list));
-        schema.SetConverter<string?, List<string>?>(json => string.IsNullOrEmpty(json)
-                                                                ? null
-                                                                : JsonSerializer.Deserialize<List<string>>(json));
+        schema.SetConverter<string?, List<string>?>(DeserializeStringList);
         return schema;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="List{String}"/> stored either as JSON (current format)
+    /// or as ServiceStack JSV (legacy format from before the rewrite). New writes
+    /// always use JSON, so rows migrate to JSON on the next save.
+    /// </summary>
+    internal static List<string>? DeserializeStringList(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(value);
+        }
+        catch (JsonException)
+        {
+            return TypeSerializer.DeserializeFromString<List<string>>(value);
+        }
     }
 }

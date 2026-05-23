@@ -29,7 +29,7 @@ public class AccountController : SoundWordsController
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return IsXhr() ? BadRequest(SerializeModelStateErrors()) : View(model);
         }
 
         SignInResult result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password,
@@ -37,11 +37,32 @@ public class AccountController : SoundWordsController
         if (!result.Succeeded)
         {
             ModelState.AddModelError(string.Empty, "Brukernavn eller passord er feil.");
-            return View(model);
+            return IsXhr()
+                       ? Unauthorized(new { error = "Brukernavn eller passord er feil." })
+                       : View(model);
         }
 
-        return RedirectToLocal(model.ReturnUrl ?? model.Continue);
+        // The ss-utils.js modal reloads on a 2xx response; a 302 would leave the
+        // modal stuck open. Return 200 for XHR callers and the normal redirect
+        // for full-page form posts.
+        return IsXhr()
+                   ? Ok(new { userName = model.UserName })
+                   : RedirectToLocal(model.ReturnUrl ?? model.Continue);
     }
+
+    private bool IsXhr() =>
+        Request.Headers.TryGetValue("X-Requested-With", out Microsoft.Extensions.Primitives.StringValues v)
+        && string.Equals(v.ToString(), "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+
+    private object SerializeModelStateErrors() =>
+        new
+        {
+            errors = ModelState
+                     .Where(kv => kv.Value!.Errors.Count > 0)
+                     .ToDictionary(
+                         kv => kv.Key,
+                         kv => kv.Value!.Errors.Select(e => e.ErrorMessage).ToArray())
+        };
 
     [HttpGet("/Account/Register")]
     public IActionResult Register([FromQuery] string? returnUrl)

@@ -30,9 +30,8 @@ public class RegisterRequest
 public class LoginRequest
 {
     [Required]
-    [EmailAddress]
-    [Display(Name = "Epostadresse")]
-    public string Email { get; set; } = string.Empty;
+    [Display(Name = "Brukernavn")]
+    public string UserName { get; set; } = string.Empty;
 
     [Required]
     [DataType(DataType.Password)]
@@ -43,4 +42,9 @@ public class LoginRequest
     public bool RememberMe { get; set; }
 
     public string? ReturnUrl { get; set; }
+
+    /// <summary>
+    /// Alias used by the legacy ss-utils.js login modal.
+    /// </summary>
+    public string? Continue { get; set; }
 }

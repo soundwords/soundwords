@@ -120,6 +120,21 @@ using (IServiceScope scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<ILegacyUserSync>().SyncAsync();
 }
 
+// Trust X-Forwarded-* headers BEFORE any other middleware so Request.Scheme,
+// Request.Host, and connection IP reflect the original client request. Behind
+// Cloudflare + Traefik these arrive from non-loopback addresses, so the
+// default KnownNetworks/KnownProxies allowlist (loopback only) drops them —
+// clear it and rely on the edge proxies to strip client-supplied values.
+ForwardedHeadersOptions forwardedHeaders = new()
+                                           {
+                                               ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                                                                  | ForwardedHeaders.XForwardedProto
+                                                                  | ForwardedHeaders.XForwardedHost
+                                           };
+forwardedHeaders.KnownIPNetworks.Clear();
+forwardedHeaders.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeaders);
+
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
     app.UseDeveloperExceptionPage();
@@ -127,11 +142,6 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 else
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseForwardedHeaders(new ForwardedHeadersOptions
-                            {
-                                ForwardedHeaders =
-                                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-                            });
 }
 
 app.UseSerilogRequestLogging();

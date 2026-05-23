@@ -25,7 +25,6 @@ public class AccountController : SoundWordsController
 
     [HttpPost("/Login")]
     [HttpPost("/Account/Login")]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginRequest model)
     {
         if (!ModelState.IsValid)
@@ -33,7 +32,7 @@ public class AccountController : SoundWordsController
             return View(model);
         }
 
-        SignInResult result = await _signInManager.PasswordSignInAsync(model.Email, model.Password,
+        SignInResult result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password,
                                                                       model.RememberMe, lockoutOnFailure: false);
         if (!result.Succeeded)
         {
@@ -41,7 +40,7 @@ public class AccountController : SoundWordsController
             return View(model);
         }
 
-        return RedirectToLocal(model.ReturnUrl);
+        return RedirectToLocal(model.ReturnUrl ?? model.Continue);
     }
 
     [HttpGet("/Account/Register")]
@@ -51,7 +50,6 @@ public class AccountController : SoundWordsController
     }
 
     [HttpPost("/Account/Register")]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterRequest model)
     {
         if (!ModelState.IsValid)
@@ -88,7 +86,6 @@ public class AccountController : SoundWordsController
     }
 
     [HttpPost("/Account/Logout")]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();

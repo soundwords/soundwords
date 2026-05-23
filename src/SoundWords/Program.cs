@@ -99,6 +99,7 @@ WebApplication app = builder.Build();
 using (IServiceScope scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<IDbMigrator>().Migrate();
+    await scope.ServiceProvider.GetRequiredService<ILegacyUserSync>().SyncAsync();
 }
 
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))

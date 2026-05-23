@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using Autofac;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
+using SoundWords.Auth;
 using SoundWords.Models;
 using SoundWords.Social;
 using SoundWords.Tools;
@@ -27,6 +28,7 @@ public class SoundWordsModule : Module
         builder.RegisterType<MetaDataTool>().As<IMetaDataTool>().SingleInstance();
         builder.RegisterType<RecordingRepository>().As<IRecordingRepository>().InstancePerLifetimeScope();
         builder.RegisterType<RebuildJob>().AsSelf().InstancePerDependency();
+        builder.RegisterType<LegacyUserSync>().As<ILegacyUserSync>().InstancePerLifetimeScope();
 
         builder.RegisterType<FileSystem>().As<IFileSystem>().SingleInstance();
 

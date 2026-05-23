@@ -1,7 +1,6 @@
-﻿namespace SoundWords.Tools
+namespace SoundWords.Tools;
+
+public interface IMarkdownTool
 {
-    public interface IMarkdownTool
-    {
-        string Get(string key);
-    }
+    string? Get(string? key);
 }

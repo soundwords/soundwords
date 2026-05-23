@@ -1,2 +1,5 @@
-﻿@model SoundWords.ViewComponents.MarkdownViewComponent.Markdown
-@Html.RenderMarkdown(Model.Content);
+@model SoundWords.ViewComponents.MarkdownViewComponent.Markdown
+@if (Model.Content != null)
+{
+    @Html.Raw(Markdig.Markdown.ToHtml(Model.Content))
+}

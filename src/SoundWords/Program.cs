@@ -1,102 +1,135 @@
-﻿using Autofac;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using LinqToDB;
+using LinqToDB.AspNet;
+using LinqToDB.AspNet.Logging;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
-using ServiceStack;
+using SoundWords.Auth;
+using SoundWords.Data;
+using SoundWords.Hubs;
+using SoundWords.Tools;
 
-Log.Logger = new LoggerConfiguration()
-             .WriteTo.Console()
-             .CreateBootstrapLogger();
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-try
+builder.Host.UseSerilog((_, loggerConfiguration) =>
+                        {
+                            loggerConfiguration.MinimumLevel.Debug()
+                                               .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                                               .Enrich.FromLogContext()
+                                               .WriteTo.Console(
+                                                   outputTemplate:
+                                                   "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext} {Message}{NewLine}{Exception}");
+                        });
+
+string dbType = builder.Configuration["DB_TYPE"]
+                ?? throw new InvalidOperationException("DB_TYPE not configured");
+string mainConnectionString = builder.Configuration["CONNECTION_STRING"]
+                              ?? throw new InvalidOperationException("CONNECTION_STRING not configured");
+string usersConnectionString = builder.Configuration["CONNECTION_STRING_USERS"] ?? mainConnectionString;
+
+builder.Services.AddLinqToDBContext<SoundWordsDb>((provider, options) =>
+                                                     options.UseConnectionString(
+                                                         SoundWordsDb.GetProvider(dbType),
+                                                         mainConnectionString)
+                                                            .UseDefaultLogging(provider),
+                                                 ServiceLifetime.Transient);
+
+builder.Services.AddDbContext<AuthDbContext>(options =>
+                                             {
+                                                 switch (dbType)
+                                                 {
+                                                     case "PostgreSQL":
+                                                         options.UseNpgsql(usersConnectionString);
+                                                         break;
+                                                     case "MySQL":
+                                                         options.UseMySQL(usersConnectionString);
+                                                         break;
+                                                     case "SQLServer":
+                                                         options.UseSqlServer(usersConnectionString);
+                                                         break;
+                                                     case "SQLite":
+                                                         options.UseSqlite(usersConnectionString);
+                                                         break;
+                                                     default:
+                                                         throw new InvalidOperationException(
+                                                             $"DB_TYPE '{dbType}' is not supported. Use PostgreSQL, MySQL, SQLServer, or SQLite.");
+                                                 }
+                                             });
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+                                                            {
+                                                                options.User.RequireUniqueEmail = true;
+                                                                options.Password.RequiredLength = 8;
+                                                            })
+       .AddEntityFrameworkStores<AuthDbContext>()
+       .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(o =>
+                                            {
+                                                o.LoginPath = "/Account/Login";
+                                                o.LogoutPath = "/Account/Logout";
+                                                o.AccessDeniedPath = "/Account/Login";
+                                            });
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+builder.Services.AddMemoryCache();
+builder.Services.AddSignalR();
+
+builder.Services.AddMvc();
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>((context, containerBuilder) =>
+                                                  {
+                                                      containerBuilder.RegisterModule(
+                                                          new SoundWordsModule(context.Configuration));
+                                                  });
+
+WebApplication app = builder.Build();
+
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+    scope.ServiceProvider.GetRequiredService<IDbMigrator>().Migrate();
+    scope.ServiceProvider.GetRequiredService<AuthDbContext>().Database.EnsureCreated();
+}
 
-    LicenseUtils.RegisterLicense(builder.Configuration["servicestack:license"]);
-
-    builder.Host.UseSerilog((context, loggerConfiguration) =>
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
                             {
-                                loggerConfiguration.MinimumLevel.Debug()
-                                                   .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                                                   .Enrich.FromLogContext()
-                                                   .WriteTo.Console(
-                                                       outputTemplate:
-                                                       "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext} {Message}{NewLine}{Exception}");
+                                ForwardedHeaders =
+                                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
                             });
-#if DEBUG
-    builder.Services.AddMvc(options => options.EnableEndpointRouting = false).AddRazorRuntimeCompilation();
-#else
-    builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
-#endif
-
-    // builder.Services.Configure<CookiePolicyOptions>(options =>
-    //                                                 {
-    //                                                     // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-    //                                                     options.CheckConsentNeeded = context => true;
-    //                                                     options.MinimumSameSitePolicy = SameSiteMode.None;
-    //                                                 });
-
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-           .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
-    // LogManager.LogFactory = new SerilogFactory();
-
-    builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-    builder.Host.ConfigureContainer<ContainerBuilder>((context, containerBuilder) =>
-                                                      {
-                                                          containerBuilder.RegisterModule(new SoundWordsModule(context.Configuration));
-                                                      });
-
-    WebApplication app = builder.Build();
-
-    // Configure the HTTP request pipeline.
-    if (!app.Environment.IsDevelopment())
-    {
-        app.UseExceptionHandler("/Home/Error");
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
-                                {
-                                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-                                });
-        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-        // app.UseHsts();
-        // app.UseHttpsRedirection();
-    }
-    else
-    {
-        app.UseDeveloperExceptionPage();
-    }
-
-    app.UseStaticFiles();
-    app.UseCookiePolicy();
-    app.UseAuthentication();
-
-    string pathBase = builder.Configuration["PATH_BASE"];
-    if (pathBase != null)
-    {
-        app.UsePathBase(pathBase);
-    }
-
-    app.UseServiceStack(app.Services.GetService<AppHostBase>());
-
-    app.UseMvc(routes =>
-               {
-                   routes.MapRoute(
-                       "default",
-                       "{controller=Home}/{action=Index}/{id?}");
-               });
-
-    Log.Information("Starting web host");
-    app.Run();
-
-    return 0;
 }
-catch (Exception ex)
+
+app.UseSerilogRequestLogging();
+app.UseStaticFiles();
+
+string? pathBase = builder.Configuration["PATH_BASE"];
+if (pathBase != null)
 {
-    Log.Fatal(ex, "Host terminated unexpectedly");
-    return 1;
+    app.UsePathBase(pathBase);
 }
-finally
-{
-    Log.CloseAndFlush();
-}
+
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<RebuildHub>("/hubs/rebuild");
+
+app.Run();

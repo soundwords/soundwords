@@ -1,7 +1,6 @@
-namespace SoundWords.Social
+namespace SoundWords.Social;
+
+public interface IHaveEscapedFragment
 {
-    public interface IHaveEscapedFragment
-    {
-        string EscapedFragment { get; set; }
-    }
+    string? EscapedFragment { get; set; }
 }

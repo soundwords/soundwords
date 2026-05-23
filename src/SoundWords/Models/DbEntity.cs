@@ -1,18 +1,18 @@
-using System;
-using ServiceStack.DataAnnotations;
-using ServiceStack.Model;
+using LinqToDB.Mapping;
 
-namespace SoundWords.Models
+namespace SoundWords.Models;
+
+public class DbEntity
 {
-    public class DbEntity : IHasId<long>
-    {
-        [AutoIncrement]
-        public long Id { get; set; }
-        
-        public DateTime CreatedOn { get; set; }
-        
-        public DateTime ModifiedOn { get; set; }
+    [PrimaryKey, Identity]
+    public long Id { get; set; }
 
-        public bool Deleted { get; set; }
-    }
+    [Column]
+    public DateTime CreatedOn { get; set; }
+
+    [Column]
+    public DateTime ModifiedOn { get; set; }
+
+    [Column]
+    public bool Deleted { get; set; }
 }

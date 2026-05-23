@@ -1,0 +1,45 @@
+﻿@inherits ViewBase<IndexResponse>
+@{
+    Layout = "_Layout";
+    ViewBag.Title = Configuration.SiteName;
+}
+
+<vc:markdown key="Welcome"></vc:markdown>
+@if (Configuration.ShowLatestAlbums)
+{
+    <partial for="LatestAlbums" name="LatestAlbumsPartial" />
+}
+<vc:markdown key="WelcomeFooter"></vc:markdown>
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(function () {
+            $('#auth').removeClass('hidden');
+            var userNameSet = false;
+            try {
+                userNameSet = !!window.localStorage["userName"];
+            } catch (e) { }
+
+            if (userNameSet) {
+                createLoginForm();
+            } else {
+                createRegisterForm();
+            }
+
+            $("input").change($.ss.clearAdjacentError);
+
+            $("a.podcast").tooltip();
+        });
+
+
+    </script>
+}
+
+@section metadata
+{
+    @{
+        OpenGraphMetadata metadata = new OpenGraphMetadata {Title = ViewBag.Title};
+    }
+    <vc:open-graph-metadata data="@metadata"></vc:open-graph-metadata>
+}

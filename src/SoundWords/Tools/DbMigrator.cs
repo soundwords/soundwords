@@ -1,62 +1,73 @@
-﻿using System;
-using FluentMigrator;
 using FluentMigrator.Runner;
-using FluentMigrator.Runner.Initialization;
-using FluentMigrator.Runner.Processors;
-using FluentMigrator.Runner.Processors.MySql;
-using FluentMigrator.Runner.Processors.Postgres;
-using FluentMigrator.Runner.Processors.SqlServer;
 using Microsoft.Extensions.Configuration;
-using ServiceStack;
-using ServiceStack.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-namespace SoundWords.Tools
+namespace SoundWords.Tools;
+
+public class DbMigrator : IDbMigrator
 {
-    public class DbMigrator : IDbMigrator
+    private static readonly HashSet<string> AppliedConnectionStrings = new();
+    private static readonly object Gate = new();
+
+    private readonly IConfiguration _configuration;
+    private readonly ILoggerFactory _loggerFactory;
+
+    public DbMigrator(ILoggerFactory loggerFactory, IConfiguration configuration)
     {
-        private readonly IConfiguration _configuration;
-        private readonly ILogFactory _logFactory;
+        _loggerFactory = loggerFactory;
+        _configuration = configuration;
+    }
 
-        public DbMigrator(ILogFactory logFactory, IConfiguration configuration)
+    public void Migrate()
+    {
+        string? dbType = _configuration["DB_TYPE"];
+        string? connectionString = _configuration["CONNECTION_STRING"];
+
+        lock (Gate)
         {
-            _logFactory = logFactory;
-            _configuration = configuration;
-        }
-
-        public void Migrate()
-        {
-            IAnnouncer announcer = new ServiceStackLoggingAnnouncer(_logFactory) {ShowSql = true};
-            IMigrationProcessorFactory migrationProcessorFactory = GetMigrationProcessorFactory(_configuration["DB_TYPE"]);
-
-            ProcessorOptions options = new ProcessorOptions
-                                       {
-                                           PreviewOnly = false, // set to true to see the SQL
-                                           Timeout = 60
-                                       };
-
-            using (IMigrationProcessor processor =
-                migrationProcessorFactory.Create(_configuration["CONNECTION_STRING"], announcer,
-                                                 options))
+            if (connectionString != null && !AppliedConnectionStrings.Add(connectionString))
             {
-                MigrationRunner runner = new MigrationRunner(GetType().Assembly, new RunnerContext(announcer), processor);
-                runner.MigrateUp();
+                return;
             }
         }
 
-        private static IMigrationProcessorFactory GetMigrationProcessorFactory(string dbType)
+        IServiceProvider serviceProvider = new ServiceCollection()
+                                           .AddSingleton(_loggerFactory)
+                                           .AddLogging()
+                                           .AddFluentMigratorCore()
+                                           .ConfigureRunner(rb =>
+                                                            {
+                                                                ConfigureDialect(rb, dbType);
+                                                                rb.WithGlobalConnectionString(connectionString)
+                                                                  .ScanIn(typeof(DbMigrator).Assembly)
+                                                                  .For.Migrations();
+                                                            })
+                                           .BuildServiceProvider(false);
+
+        using IServiceScope scope = serviceProvider.CreateScope();
+        IMigrationRunner runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+        runner.MigrateUp();
+    }
+
+    private static void ConfigureDialect(IMigrationRunnerBuilder rb, string? dbType)
+    {
+        switch (dbType)
         {
-            switch (dbType)
-            {
-                case "SQLServer":
-                    return new SqlServer2014ProcessorFactory();
-                case "MySQL":
-                    return new MySqlProcessorFactory();
-                case "PostgreSQL":
-                    return new PostgresProcessorFactory();
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(dbType),
-                                                          "The database type is not supported");
-            }
+            case "PostgreSQL":
+                rb.AddPostgres();
+                break;
+            case "MySQL":
+                rb.AddMySql8();
+                break;
+            case "SQLServer":
+                rb.AddSqlServer2014();
+                break;
+            case "SQLite":
+                rb.AddSQLite();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(dbType), $"The database type '{dbType}' is not supported");
         }
     }
 }

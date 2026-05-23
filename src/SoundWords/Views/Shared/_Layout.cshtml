@@ -1,4 +1,4 @@
-﻿@inherits ViewBase
+﻿@inherits SoundWords.ViewBase
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    @RenderSection("metadata", true)
+    @RenderSection("metadata", false)
     <title>@ViewBag.Title</title>
 
     <!-- Bootstrap -->
-    @if (Request.GetCookieValue("night-mode") == "true")
+    @if (Context.Request.Cookies["night-mode"] == "true")
     {
         <link href="~/css/bootstrap-night.min.css" rel="stylesheet">
     }
@@ -134,7 +134,7 @@
             </div>
         </div>
         <div id="main" class="row">
-            <div id="sidebar" class="col-md-3">@RenderSection("Sidebar", false)</div>
+            <div id="sidebar" class="col-md-3"><vc:speaker-list></vc:speaker-list></div>
             <div id="content" class="col-md-9">
                 @if (!IsAuthenticated)
                 {
@@ -167,11 +167,11 @@
     </environment>
     <script type="text/javascript">
         function createRegisterForm() {
-            createRegisterFormBase('@Configuration.SiteUrl@(new Register().ToPostUrl())', '@Configuration.SiteUrl@(new Authenticate().ToPostUrl())');
+            createRegisterFormBase('@Configuration.SiteUrl/Account/Register', '@Configuration.SiteUrl/Account/Login');
         }
 
         function createLoginForm() {
-            createLoginFormBase('@Configuration.SiteUrl@(new Register().ToPostUrl())', '@Configuration.SiteUrl@(new Authenticate().ToPostUrl())');
+            createLoginFormBase('@Configuration.SiteUrl/Account/Register', '@Configuration.SiteUrl/Account/Login');
         }
         $(function () {
             $(".day-mode").click(function (e) {
@@ -192,8 +192,8 @@
                 e.preventDefault();
 
                 $.ajax({
-                    url: '@(new Authenticate().ToPostUrl())',
-                    type: 'DELETE',
+                    url: '/Account/Logout',
+                    type: 'POST',
                     success: function (result) {
                         location.reload();
                     }

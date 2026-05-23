@@ -1,0 +1,16 @@
+﻿@model AboutResponse
+@{
+    Layout = "_Layout";
+
+    ViewBag.Title = "Om oss";
+}
+
+<vc:markdown key="About"></vc:markdown>
+
+@section metadata
+{
+    @{
+        OpenGraphMetadata metadata = new OpenGraphMetadata {Title = ViewBag.Title};
+    }
+    <vc:open-graph-metadata data="@metadata"></vc:open-graph-metadata>
+}

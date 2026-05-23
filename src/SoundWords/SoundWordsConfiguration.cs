@@ -1,44 +1,36 @@
-﻿using ServiceStack;
-using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
-namespace SoundWords
+namespace SoundWords;
+
+internal class SoundWordsConfiguration : ISoundWordsConfiguration
 {
-    internal class SoundWordsConfiguration : NetCoreAppSettings, ISoundWordsConfiguration
-    {        
-        public List<string> AdminUserNames => Get("ADMIN_USER_NAMES", new List<string>());
+    private readonly IConfiguration _configuration;
 
-        public string RecordingsFolder => Get("RECORDINGS_FOLDER", "/var/audio/public");
-
-        public string RestrictedRecordingsFolder => Get("RECORDINGS_FOLDER_RESTRICTED", "/var/audio/restricted");
-
-        public string FacebookAppId => GetString("FACEBOOK_APP_ID");
-
-        public string Protocol => Get("PROTOCOL", "http");
-
-        public string SiteName => GetString("SITE_NAME");
-
-        public bool DebugMode => Get("DebugMode", false);
-
-        public string CachePath => Get("CACHE_PATH", "/var/cache");
-        public string SiteUrl => GetString("SITE_URL");
-
-        public string CustomFolder => Get("CUSTOM_FOLDER", "/var/custom");
-        public string MetaDescription => GetString("META_DESCRIPTION");
-        public bool PiwikEnabled => Get("PIWIK_ENABLED", false);
-        public string PiwikDomains => GetString("PIWIK_DOMAINS");
-        public string PiwikHost => GetString("PIWIK_HOST");
-        public string PiwikSiteId => GetString("PIWIK_SITE_ID");
-        public string LogoPath => Get("LOGO_PATH", $"{SiteUrl}/content/images/logo.png");
-        public bool ShowLatestAlbums => Get("SHOW_LATEST_ALBUMS", true);
-        public bool RecreateAuthTables => Get("RECREATE_AUTH_TABLES", false);
-        public string CompanyName => GetString("COMPANY_NAME");
-        public string Slogan => GetString("SLOGAN");
-        public string CompanyEmail => GetString("COMPANY_EMAIL");
-        public IList<string> PodcastCategories => GetList("PODCAST_CATEGORIES");
-        public IList<string> PodcastSubcategories => GetList("PODCAST_SUBCATEGORIES");
-
-        public SoundWordsConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration) : base(configuration)
-        {
-        }
+    public SoundWordsConfiguration(IConfiguration configuration)
+    {
+        _configuration = configuration;
     }
+
+    public List<string> AdminUserNames => _configuration.GetSection("ADMIN_USER_NAMES").Get<List<string>>() ?? new List<string>();
+    public string RecordingsFolder => _configuration["RECORDINGS_FOLDER"] ?? "/var/audio/public";
+    public string RestrictedRecordingsFolder => _configuration["RECORDINGS_FOLDER_RESTRICTED"] ?? "/var/audio/restricted";
+    public string? FacebookAppId => _configuration["FACEBOOK_APP_ID"];
+    public string Protocol => _configuration["PROTOCOL"] ?? "http";
+    public string? SiteName => _configuration["SITE_NAME"];
+    public bool DebugMode => _configuration.GetValue("DebugMode", false);
+    public string CachePath => _configuration["CACHE_PATH"] ?? "/var/cache";
+    public string? SiteUrl => _configuration["SITE_URL"];
+    public string CustomFolder => _configuration["CUSTOM_FOLDER"] ?? "/var/custom";
+    public string? MetaDescription => _configuration["META_DESCRIPTION"];
+    public bool PiwikEnabled => _configuration.GetValue("PIWIK_ENABLED", false);
+    public string? PiwikDomains => _configuration["PIWIK_DOMAINS"];
+    public string? PiwikHost => _configuration["PIWIK_HOST"];
+    public string? PiwikSiteId => _configuration["PIWIK_SITE_ID"];
+    public string LogoPath => _configuration["LOGO_PATH"] ?? $"{SiteUrl}/content/images/logo.png";
+    public bool ShowLatestAlbums => _configuration.GetValue("SHOW_LATEST_ALBUMS", true);
+    public string? CompanyName => _configuration["COMPANY_NAME"];
+    public string? Slogan => _configuration["SLOGAN"];
+    public string? CompanyEmail => _configuration["COMPANY_EMAIL"];
+    public IList<string> PodcastCategories => _configuration.GetSection("PODCAST_CATEGORIES").Get<List<string>>() ?? new List<string>();
+    public IList<string> PodcastSubcategories => _configuration.GetSection("PODCAST_SUBCATEGORIES").Get<List<string>>() ?? new List<string>();
 }

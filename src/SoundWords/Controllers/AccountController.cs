@@ -94,11 +94,25 @@ public class AccountController : SoundWordsController
 
     private IActionResult RedirectToLocal(string? returnUrl)
     {
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        if (!string.IsNullOrEmpty(returnUrl)
+            && Url.IsLocalUrl(returnUrl)
+            && !PointsAtAccount(returnUrl))
         {
             return Redirect(returnUrl);
         }
 
         return Redirect("/");
+    }
+
+    private static bool PointsAtAccount(string returnUrl)
+    {
+        // Strip the query string so '/Account/Login?...' is matched too.
+        int queryStart = returnUrl.IndexOf('?');
+        ReadOnlySpan<char> path = queryStart >= 0 ? returnUrl.AsSpan(0, queryStart) : returnUrl.AsSpan();
+        return path.Equals("/Login", StringComparison.OrdinalIgnoreCase)
+               || path.StartsWith("/Login/", StringComparison.OrdinalIgnoreCase)
+               || path.Equals("/Account/Login", StringComparison.OrdinalIgnoreCase)
+               || path.StartsWith("/Account/Login/", StringComparison.OrdinalIgnoreCase)
+               || path.Equals("/Account/Register", StringComparison.OrdinalIgnoreCase);
     }
 }

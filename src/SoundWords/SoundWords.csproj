@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>annotations</Nullable>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <UserSecretsId>14ce1a20-2b58-40c7-87e7-eed53b503c66</UserSecretsId>
   </PropertyGroup>
@@ -11,32 +12,44 @@
   </PropertyGroup>
   <ItemGroup>
     <Using Include="SoundWords" />
+    <InternalsVisibleTo Include="SoundWords.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="7.1.0" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
-    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
-    <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
-    <PackageReference Include="morelinq" Version="3.4.2" />
-    <PackageReference Include="MySql.Data" Version="8.1.0" />
-    <PackageReference Include="Npgsql" Version="7.0.4" />
-    <PackageReference Include="Serenity.FluentMigrator" Version="1.6.904" />
-    <PackageReference Include="Serenity.FluentMigrator.Runner" Version="1.6.904" />
-    <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
-    <PackageReference Include="ServiceStack.Mvc" Version="6.10.0" />
-    <PackageReference Include="ServiceStack.OrmLite.MySqlConnector" Version="6.10.0" />
-    <PackageReference Include="ServiceStack.OrmLite.PostgreSQL" Version="6.10.0" />
-    <PackageReference Include="ServiceStack.OrmLite.SqlServer" Version="6.10.0" />
-    <PackageReference Include="ServiceStack.Server" Version="6.10.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0" />
-    <PackageReference Include="System.IO.Abstractions" Version="19.2.69" />
+    <PackageReference Include="Autofac" Version="9.1.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="11.0.0" />
+    <PackageReference Include="FluentMigrator.Runner" Version="8.0.1" />
+    <PackageReference Include="FluentMigrator.Runner.MySql" Version="8.0.1" />
+    <PackageReference Include="FluentMigrator.Runner.Postgres" Version="8.0.1" />
+    <PackageReference Include="FluentMigrator.Runner.SQLite" Version="8.0.1" />
+    <PackageReference Include="FluentMigrator.Runner.SqlServer" Version="8.0.1" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Include="linq2db" Version="6.3.0" />
+    <PackageReference Include="linq2db.Extensions" Version="6.3.0" />
+    <PackageReference Include="linq2db.SQLite" Version="6.3.0" />
+    <PackageReference Include="Markdig" Version="1.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="3.0.71" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
+    <PackageReference Include="morelinq" Version="4.4.0" />
+    <PackageReference Include="MySqlConnector" Version="2.5.0" />
+    <PackageReference Include="Npgsql" Version="10.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="9.1.0" />
+    <PackageReference Include="ServiceStack.Text" Version="10.0.6" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
+    <PackageReference Include="System.IO.Abstractions" Version="22.1.1" />
     <PackageReference Include="Taglib-Sharp-NetStandard" Version="1.0.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.53" />
-    <!-- Required for Razor compilation on change: https://docs.microsoft.com/en-us/aspnet/core/mvc/views/view-compilation?view=aspnetcore-5.0 -->
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.*" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.8" Condition="'$(Configuration)' == 'Debug'" />
   </ItemGroup>
   <ItemGroup>
     <None Update="docker-compose.override.yml">

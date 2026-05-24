@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.IO.Abstractions;
-using ServiceStack;
+﻿using System.IO.Abstractions;
 using File = TagLib.File;
 
 namespace SoundWords.Tools

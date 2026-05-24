@@ -1,0 +1,30 @@
+@model SoundWords.Auth.LoginRequest
+@{
+    Layout = "_Layout";
+    ViewBag.Title = "Logg inn";
+}
+
+<h3>Logg inn</h3>
+
+<form asp-controller="Account" asp-action="Login" method="post">
+    <input type="hidden" asp-for="ReturnUrl"/>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control"/>
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" type="password" class="form-control"/>
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input asp-for="RememberMe"/> @Html.DisplayNameFor(m => m.RememberMe)
+        </label>
+    </div>
+    <button type="submit" class="btn btn-primary">Logg inn</button>
+    <a class="btn btn-link" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Registrer ny bruker</a>
+</form>

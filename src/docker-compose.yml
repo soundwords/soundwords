@@ -6,17 +6,41 @@ services:
     build:
       context: .
       dockerfile: SoundWords/Dockerfile
-  #  environment:
-  #    - CONNECTION_STRING=${CONNECTION_STRING-}
-  #    - DB_TYPE=${DB_TYPE-}
-  #    - FACEBOOK_APP_ID=${FACEBOOK_APP_ID-}
-  #    - SITE_NAME=${SITE_NAME-}
-  #    - SITE_URL=${SITE_URL-}
-  #    - PROTOCOL=${PROTOCOL-}
-  #    - ADMIN_USER_NAMES=${ADMIN_USER_NAMES-}
-  #    - PIWIK_ENABLED=${PIWIK_ENABLED-}
-  #    - PIWIK_HOST=${PIWIK_HOST-}
-  #    - PIWIK_DOMAINS=${PIWIK_DOMAINS-}
-  #    - PIWIK_SITE_ID=${PIWIK_SITE_ID-}
-  #    - RECREATE_AUTH_TABLES=${RECREATE_AUTH_TABLES-}
-  #    - META_DESCRIPTION=${META_DESCRIPTION-}
+    environment:
+      # --- Database ---
+      - DB_TYPE=${DB_TYPE-MySQL}
+      - CONNECTION_STRING=${CONNECTION_STRING-}
+      # Defaults to CONNECTION_STRING when unset.
+      - CONNECTION_STRING_USERS=${CONNECTION_STRING_USERS-}
+
+      # --- Site identity ---
+      - SITE_NAME=${SITE_NAME-}
+      - SITE_URL=${SITE_URL-}
+      - PROTOCOL=${PROTOCOL-https}
+      - COMPANY_NAME=${COMPANY_NAME-}
+      - COMPANY_EMAIL=${COMPANY_EMAIL-}
+      - SLOGAN=${SLOGAN-}
+      - META_DESCRIPTION=${META_DESCRIPTION-}
+      - LOGO_PATH=${LOGO_PATH-}
+      - SHOW_LATEST_ALBUMS=${SHOW_LATEST_ALBUMS-true}
+
+      # --- Filesystem paths inside the container ---
+      - RECORDINGS_FOLDER=${RECORDINGS_FOLDER-/var/audio/public}
+      - RECORDINGS_FOLDER_RESTRICTED=${RECORDINGS_FOLDER_RESTRICTED-/var/audio/restricted}
+      - CACHE_PATH=${CACHE_PATH-/var/cache}
+      - CUSTOM_FOLDER=${CUSTOM_FOLDER-/var/custom}
+
+      # --- Optional integrations ---
+      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID-}
+      - PIWIK_ENABLED=${PIWIK_ENABLED-false}
+      - PIWIK_HOST=${PIWIK_HOST-}
+      - PIWIK_DOMAINS=${PIWIK_DOMAINS-}
+      - PIWIK_SITE_ID=${PIWIK_SITE_ID-}
+
+      # --- Structured logging (Seq) — set SEQ_URL to enable. ---
+      - SEQ_URL=${SEQ_URL-}
+      - SEQ_API_KEY=${SEQ_API_KEY-}
+
+      # --- Podcast feed iTunes categories (paired) ---
+      - PODCAST_CATEGORIES__0=${PODCAST_CATEGORIES__0-}
+      - PODCAST_SUBCATEGORIES__0=${PODCAST_SUBCATEGORIES__0-}

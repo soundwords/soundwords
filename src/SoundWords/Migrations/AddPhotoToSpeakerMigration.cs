@@ -2,7 +2,7 @@
 
 namespace SoundWords.Migrations
 {
-    [Migration(201709070000)]
+    [Migration(201709070000), FluentMigrator.Tags("Domain")]
     public class AddPhotoToSpeakerMigration : ForwardOnlyMigration
     {
         public override void Up()

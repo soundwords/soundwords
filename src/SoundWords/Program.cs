@@ -1,102 +1,180 @@
-﻿using Autofac;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using LinqToDB;
+using LinqToDB.Extensions.DependencyInjection;
+using LinqToDB.Extensions.Logging;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Serilog;
 using Serilog.Events;
-using ServiceStack;
+using SoundWords.Auth;
+using SoundWords.Data;
+using SoundWords.Hubs;
+using SoundWords.Tools;
 
-Log.Logger = new LoggerConfiguration()
-             .WriteTo.Console()
-             .CreateBootstrapLogger();
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-try
-{
-    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+// Surface Serilog's own diagnostics on stderr so misconfigured sinks
+// (bad SEQ_URL, 401, network errors) don't fail silently.
+Serilog.Debugging.SelfLog.Enable(Console.Error);
 
-    LicenseUtils.RegisterLicense(builder.Configuration["servicestack:license"]);
+builder.Host.UseSerilog((context, loggerConfiguration) =>
+                        {
+                            loggerConfiguration.MinimumLevel.Debug()
+                                               .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                                               .Enrich.FromLogContext()
+                                               .Enrich.WithProperty("Application", "SoundWords")
+                                               .WriteTo.Console(
+                                                   outputTemplate:
+                                                   "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext} {Message}{NewLine}{Exception}");
 
-    builder.Host.UseSerilog((context, loggerConfiguration) =>
+                            string? seqUrl = context.Configuration["SEQ_URL"];
+                            if (!string.IsNullOrEmpty(seqUrl))
                             {
-                                loggerConfiguration.MinimumLevel.Debug()
-                                                   .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                                                   .Enrich.FromLogContext()
-                                                   .WriteTo.Console(
-                                                       outputTemplate:
-                                                       "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {SourceContext} {Message}{NewLine}{Exception}");
-                            });
-#if DEBUG
-    builder.Services.AddMvc(options => options.EnableEndpointRouting = false).AddRazorRuntimeCompilation();
-#else
-    builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
-#endif
+                                string? seqApiKey = context.Configuration["SEQ_API_KEY"];
+                                loggerConfiguration.WriteTo.Seq(seqUrl, apiKey: seqApiKey);
+                                Console.WriteLine($"[Serilog] Seq sink enabled → {seqUrl}");
+                            }
+                            else
+                            {
+                                Console.WriteLine("[Serilog] SEQ_URL not set; Seq sink disabled.");
+                            }
+                        });
 
-    // builder.Services.Configure<CookiePolicyOptions>(options =>
-    //                                                 {
-    //                                                     // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-    //                                                     options.CheckConsentNeeded = context => true;
-    //                                                     options.MinimumSameSitePolicy = SameSiteMode.None;
-    //                                                 });
+string dbType = builder.Configuration["DB_TYPE"]
+                ?? throw new InvalidOperationException("DB_TYPE not configured");
+string mainConnectionString = builder.Configuration["CONNECTION_STRING"]
+                              ?? throw new InvalidOperationException("CONNECTION_STRING not configured");
+string usersConnectionString = builder.Configuration["CONNECTION_STRING_USERS"] ?? mainConnectionString;
 
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-           .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
-    // LogManager.LogFactory = new SerilogFactory();
+builder.Services.AddLinqToDBContext<SoundWordsDb>((provider, options) =>
+                                                     options.UseConnectionString(
+                                                         SoundWordsDb.GetProvider(dbType),
+                                                         mainConnectionString)
+                                                            .UseDefaultLogging(provider),
+                                                 ServiceLifetime.Transient);
 
-    builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-    builder.Host.ConfigureContainer<ContainerBuilder>((context, containerBuilder) =>
-                                                      {
-                                                          containerBuilder.RegisterModule(new SoundWordsModule(context.Configuration));
-                                                      });
+builder.Services.AddDbContext<AuthDbContext>(options =>
+                                             {
+                                                 switch (dbType)
+                                                 {
+                                                     case "PostgreSQL":
+                                                         options.UseNpgsql(usersConnectionString);
+                                                         break;
+                                                     case "MySQL":
+                                                         options.UseMySQL(usersConnectionString);
+                                                         break;
+                                                     case "SQLServer":
+                                                         options.UseSqlServer(usersConnectionString);
+                                                         break;
+                                                     case "SQLite":
+                                                         options.UseSqlite(usersConnectionString);
+                                                         break;
+                                                     default:
+                                                         throw new InvalidOperationException(
+                                                             $"DB_TYPE '{dbType}' is not supported. Use PostgreSQL, MySQL, SQLServer, or SQLite.");
+                                                 }
+                                             });
 
-    WebApplication app = builder.Build();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+                                                            {
+                                                                options.User.RequireUniqueEmail = true;
+                                                                options.Password.RequiredLength = 8;
+                                                            })
+       .AddEntityFrameworkStores<AuthDbContext>()
+       .AddDefaultTokenProviders();
 
-    // Configure the HTTP request pipeline.
-    if (!app.Environment.IsDevelopment())
-    {
-        app.UseExceptionHandler("/Home/Error");
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
-                                {
-                                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-                                });
-        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-        // app.UseHsts();
-        // app.UseHttpsRedirection();
-    }
-    else
-    {
-        app.UseDeveloperExceptionPage();
-    }
+builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, LegacyAwarePasswordHasher>();
 
-    app.UseStaticFiles();
-    app.UseCookiePolicy();
-    app.UseAuthentication();
+builder.Services.ConfigureApplicationCookie(o =>
+                                            {
+                                                o.LoginPath = "/Account/Login";
+                                                o.LogoutPath = "/Account/Logout";
+                                                o.AccessDeniedPath = "/Account/Login";
+                                            });
 
-    string pathBase = builder.Configuration["PATH_BASE"];
-    if (pathBase != null)
-    {
-        app.UsePathBase(pathBase);
-    }
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
-    app.UseServiceStack(app.Services.GetService<AppHostBase>());
+builder.Services.AddMemoryCache();
+builder.Services.AddSignalR();
 
-    app.UseMvc(routes =>
-               {
-                   routes.MapRoute(
-                       "default",
-                       "{controller=Home}/{action=Index}/{id?}");
-               });
+builder.Services.AddMvc();
 
-    Log.Information("Starting web host");
-    app.Run();
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>((context, containerBuilder) =>
+                                                  {
+                                                      containerBuilder.RegisterModule(
+                                                          new SoundWordsModule(context.Configuration));
+                                                  });
 
-    return 0;
-}
-catch (Exception ex)
+WebApplication app = builder.Build();
+
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    Log.Fatal(ex, "Host terminated unexpectedly");
-    return 1;
+    scope.ServiceProvider.GetRequiredService<IDbMigrator>().Migrate();
+    await scope.ServiceProvider.GetRequiredService<ILegacyUserSync>().SyncAsync();
 }
-finally
+
+// Trust X-Forwarded-* headers BEFORE any other middleware so Request.Scheme,
+// Request.Host, and connection IP reflect the original client request. Behind
+// Cloudflare + Traefik these arrive from non-loopback addresses, so the
+// default KnownNetworks/KnownProxies allowlist (loopback only) drops them —
+// clear it and rely on the edge proxies to strip client-supplied values.
+ForwardedHeadersOptions forwardedHeaders = new()
+                                           {
+                                               ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                                                                  | ForwardedHeaders.XForwardedProto
+                                                                  | ForwardedHeaders.XForwardedHost
+                                           };
+forwardedHeaders.KnownIPNetworks.Clear();
+forwardedHeaders.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeaders);
+
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
-    Log.CloseAndFlush();
+    app.UseDeveloperExceptionPage();
 }
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+}
+
+app.UseSerilogRequestLogging();
+app.UseStaticFiles();
+
+// Mount {CUSTOM_FOLDER}/content at /content — mirrors the FileSystemMapping
+// the old AppHost used so site-specific images, logos, RSS artwork, etc.
+// can live outside the deployed wwwroot.
+ISoundWordsConfiguration soundWordsConfiguration =
+    app.Services.GetRequiredService<ISoundWordsConfiguration>();
+string contentRoot = Path.Combine(soundWordsConfiguration.CustomFolder, "content");
+if (Directory.Exists(contentRoot))
+{
+    app.UseStaticFiles(new StaticFileOptions
+                       {
+                           FileProvider = new PhysicalFileProvider(contentRoot),
+                           RequestPath = "/content"
+                       });
+}
+
+string? pathBase = builder.Configuration["PATH_BASE"];
+if (pathBase != null)
+{
+    app.UsePathBase(pathBase);
+}
+
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<RebuildHub>("/hubs/rebuild");
+
+app.Run();

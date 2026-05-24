@@ -1,31 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 
-namespace SoundWords.Social
+namespace SoundWords.Social;
+
+public class MetaDataTool : IMetaDataTool
 {
-    public class MetaDataTool : IMetaDataTool
+    public Metadata GetMetaData(object metaData)
     {
-        public Metadata GetMetaData(object metaData)
+        Type type = metaData.GetType();
+
+        Dictionary<string, string> metadataDictionary = new();
+        foreach (PropertyInfo property in type.GetProperties())
         {
-            Type type = metaData.GetType();
-
-            var metadataDictionary = new Dictionary<string, string>();
-            foreach (PropertyInfo property in type.GetProperties())
+            DataMemberAttribute? dataMember = property.GetCustomAttribute<DataMemberAttribute>();
+            if (dataMember?.Name == null)
             {
-                string propertyName = property.GetCustomAttribute<DataMemberAttribute>().Name;
-                var content = (string) property.GetValue(metaData);
-
-                if (content == null)
-                {
-                    continue;
-                }
-
-                metadataDictionary.Add(propertyName, content);
+                continue;
             }
 
-            return new Metadata {Data = metadataDictionary};
+            string? content = (string?)property.GetValue(metaData);
+            if (content == null)
+            {
+                continue;
+            }
+
+            metadataDictionary[dataMember.Name] = content;
         }
+
+        return new Metadata { Data = metadataDictionary };
     }
 }

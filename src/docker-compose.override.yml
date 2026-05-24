@@ -4,6 +4,7 @@ services:
   soundwords:
     depends_on:
       - db
+      - seq
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - CONNECTION_STRING=Server=db;User=soundwords;Database=soundwords;Password=secret;
@@ -11,6 +12,7 @@ services:
       - SITE_NAME=SoundWords
       - SITE_URL=http://localhost:45080
       - DebugMode=true
+      - SEQ_URL=http://seq:5341
       - "META_DESCRIPTION=P&aring; sunneord.no kan du lytte til bibelundervisning fra for mer enn et halvt &aring;rhundre siden og til i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;"
       - "COMPANY_NAME=Foreningen Sunne ord"
       - "COMPANY_EMAIL=post@sunneord.no"
@@ -20,7 +22,7 @@ services:
       - "PODCAST_CATEGORIES__1=A category"
       - "PODCAST_SUBCATEGORIES__1=A subcategory"
     ports:
-      - "45080:80"
+      - "45080:8080"
     volumes:
 #      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
 #      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
@@ -29,7 +31,7 @@ services:
       - ../custom:/var/custom
 
   db:
-    image: mysql:5.7
+    image: mysql:8.4
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=true
       - MYSQL_DATABASE=soundwords
@@ -37,6 +39,14 @@ services:
       - MYSQL_PASSWORD=secret
 #    volumes:
 #      db-data:/var/lib/mysql
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "45341:80"     # Seq UI
+      - "5341:5341"    # Seq ingest (so `dotnet run` outside compose can post here)
 
 #volumes:
 #  db-data:

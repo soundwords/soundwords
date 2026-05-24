@@ -1,121 +1,105 @@
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using ServiceStack.Logging;
-using ServiceStack.Data;
-using ServiceStack.OrmLite;
+using LinqToDB;
+using Microsoft.Extensions.Logging;
+using SoundWords.Data;
 
-namespace SoundWords.Models
-{ 
-    public class RecordingRepository : IRecordingRepository
+namespace SoundWords.Models;
+
+public class RecordingRepository : IRecordingRepository
+{
+    private readonly Func<SoundWordsDb> _dbFactory;
+    private readonly ILogger<RecordingRepository> _logger;
+
+    public RecordingRepository(ILogger<RecordingRepository> logger, Func<SoundWordsDb> dbFactory)
     {
-        private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly ILog _logger;
+        _logger = logger;
+        _dbFactory = dbFactory;
+    }
 
-        public RecordingRepository(ILogFactory logFactory, IDbConnectionFactory dbConnectionFactory)
+    public List<Recording> GetAllRecordings(bool includeRestricted)
+    {
+        using SoundWordsDb db = _dbFactory();
+        _logger.LogDebug("Getting all recordings");
+
+        IQueryable<DbRecording> query = db.Recordings.Where(x => !x.Deleted);
+        if (!includeRestricted)
         {
-            _logger = logFactory.GetLogger(GetType());
-            _dbConnectionFactory = dbConnectionFactory;
+            query = query.Where(x => !x.Restricted);
         }
 
-        public List<Recording> GetAllRecordings(bool includeRestricted)
-        {
-            using (IDbConnection db = _dbConnectionFactory.Open())
-            {
-                _logger.Debug("Getting all recordings");
-                if (includeRestricted)
-                {
-                    return db.Select<DbRecording>(x => !x.Deleted).ConvertAll(r => r.ToRecording());
-                }
+        return query.ToList().ConvertAll(r => r.ToRecording());
+    }
 
-                return db.Select<DbRecording>(x => !x.Deleted && !x.Restricted).ConvertAll(r => r.ToRecording());
-            }
+    public List<AlbumWithSpeakers> GetLatestAlbums(bool includeRestricted, int limit = 10)
+    {
+        using SoundWordsDb db = _dbFactory();
+        _logger.LogDebug("Getting latest recordings");
+
+        IQueryable<DbAlbum> latestAlbumsQuery = db.Albums.Where(a => !a.Deleted)
+                                                  .OrderByDescending(a => a.CreatedOn);
+        if (!includeRestricted)
+        {
+            latestAlbumsQuery = latestAlbumsQuery.Where(a => !a.Restricted);
+        }
+        latestAlbumsQuery = latestAlbumsQuery.Take(limit);
+
+        List<DbAlbum> albums = latestAlbumsQuery.ToList();
+        IQueryable<long> latestAlbumIds = latestAlbumsQuery.Select(a => a.Id);
+
+        var albumSpeakers = (from speaker in db.Speakers
+                             join recordingSpeaker in db.RecordingSpeakers on speaker.Id equals recordingSpeaker.SpeakerId
+                             join recording in db.Recordings on recordingSpeaker.RecordingId equals recording.Id
+                             join album in db.Albums on recording.AlbumId equals album.Id
+                             where !speaker.Deleted && !recording.Deleted && !album.Deleted
+                                                    && latestAlbumIds.Contains(album.Id)
+                             select new { AlbumId = album.Id, Speaker = speaker })
+                            .ToList()
+                            .ToLookup(x => x.AlbumId, x => x.Speaker);
+
+        return albums.Select(a => new AlbumWithSpeakers
+                                  {
+                                      Album = a.ToAlbum(),
+                                      Speakers = albumSpeakers[a.Id]
+                                                 .DistinctBy(s => s.Id)
+                                                 .Select(s => s.ToSpeaker())
+                                                 .ToList()
+                                  }).ToList();
+    }
+
+    public List<Speaker> GetSpeakers(bool includeRestricted)
+    {
+        _logger.LogDebug("Getting speaker list for right menu");
+
+        using SoundWordsDb db = _dbFactory();
+
+        var query = from speaker in db.Speakers
+                    join recordingSpeaker in db.RecordingSpeakers on speaker.Id equals recordingSpeaker.SpeakerId
+                    join recording in db.Recordings on recordingSpeaker.RecordingId equals recording.Id
+                    where !speaker.Deleted && !recording.Deleted
+                    select new { speaker, recording };
+
+        if (!includeRestricted)
+        {
+            query = query.Where(x => !x.recording.Restricted);
         }
 
-        public List<AlbumWithSpeakers> GetLatestAlbums(bool includeRestricted, int limit = 10)
-        {
-            using (IDbConnection db = _dbConnectionFactory.Open())
-            {
-                _logger.Debug("Getting latest recordings");
-
-                    var albumQuery = db.From<DbAlbum>()
-                    .OrderByDescending(a => a.CreatedOn)
-                    .Take(limit);
-                if (!includeRestricted)
-                {
-                    albumQuery.Where(a => !a.Restricted);
-                }
-
-                var albumIdQuery =
-                    albumQuery.Clone().Select(a => a.Id);
-
-                var recordingIdQuery = db.From<DbRecording>()
-                    .Where(r => Sql.In(r.AlbumId, albumIdQuery))
-                    .Select(r => r.Id);
-
-                var speakerQuery = db.From<DbSpeaker>()
-                                     .Join<DbRecordingSpeaker>((speaker, recordingSpeaker) => speaker.Id == recordingSpeaker.SpeakerId)
-                                     .Join<DbRecordingSpeaker, DbRecording>((recordingSpeaker, recording) => recordingSpeaker.RecordingId == recording.Id)
-                                     .Join<DbRecording, DbAlbum>((recording, album) => recording.AlbumId == album.Id)
-                                     .Where<DbSpeaker, DbRecordingSpeaker, DbAlbum, DbRecording>((speaker, recordingSpeaker, album, recording) =>
-                                                                                                     !recording.Deleted &&
-                                                                                                     !album.Deleted &&
-                                                                                                     !speaker.Deleted &&
-                                                                                                     Sql.In(recordingSpeaker.RecordingId, recordingIdQuery));
-
-                var recordingsByAlbum = db.SelectMulti<DbSpeaker, DbRecordingSpeaker, DbRecording, DbAlbum>(speakerQuery)
-                    .ToLookup(m => m.Item4.Id);
-
-                var albums = db.Select(albumQuery);
-
-                return albums.Select(a => new AlbumWithSpeakers
-                {
-                    Album = a.ToAlbum(),
-                    Speakers = recordingsByAlbum[a.Id].Select(s => s.Item1).DistinctBy(s => s.Id).ToList().ConvertAll(s => s.ToSpeaker())
-                }).ToList();
-            }
-        }
-
-        public List<Speaker> GetSpeakers(bool includeRestricted)
-        {
-            _logger.Debug("Getting speaker list for right menu");
-
-            using (IDbConnection db = _dbConnectionFactory.Open())
-            {
-                var filterExpression = db.From<DbRecording>()
-                        .Join<DbRecordingSpeaker>((recording, recordingSpeaker) => recording.Id == recordingSpeaker.RecordingId)
-                        .Join<DbRecordingSpeaker, DbSpeaker>((recordingSpeaker, speaker) => recordingSpeaker.SpeakerId == speaker.Id)
-                        .Where<DbRecording, DbSpeaker>((recording, speaker) => !recording.Deleted && !speaker.Deleted);
-
-                if (!includeRestricted)
-                {
-                    filterExpression.And(r => !r.Restricted);
-                }
-                var recordings = db.SelectMulti<DbRecording, DbRecordingSpeaker, DbSpeaker>(filterExpression);
-
-                IEnumerable<DbSpeaker> speakers = recordings.Select(r => r.Item3).DistinctBy(s => s.Id);
-
-                return speakers
+        return query.Select(x => x.speaker).ToList()
+                    .DistinctBy(s => s.Id)
                     .OrderBy(s => s.LastName)
                     .ThenBy(s => s.FirstName)
                     .Select(s => s.ToSpeaker())
                     .ToList();
-            }
-        }
-
-
-        public Recording GetById(string uid)
-        {
-            using (IDbConnection db = _dbConnectionFactory.Open())
-            {
-                return db.Single<DbRecording>(r => r.Uid == uid && !r.Deleted).ToRecording();
-            }
-        }
     }
 
-    public class AlbumWithSpeakers
+    public Recording? GetById(string uid)
     {
-        public Album Album { get; set; }
-        public List<Speaker> Speakers { get; set; }
+        using SoundWordsDb db = _dbFactory();
+        DbRecording? dbRecording = db.Recordings.SingleOrDefault(r => r.Uid == uid && !r.Deleted);
+        return dbRecording?.ToRecording();
     }
+}
+
+public class AlbumWithSpeakers
+{
+    public Album Album { get; set; } = null!;
+    public List<Speaker> Speakers { get; set; } = new();
 }

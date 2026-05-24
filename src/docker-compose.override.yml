@@ -5,6 +5,7 @@ services:
     depends_on:
       - db
       - seq
+      - minio-init
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - CONNECTION_STRING=Server=db;User=soundwords;Database=soundwords;Password=secret;
@@ -13,6 +14,13 @@ services:
       - SITE_URL=http://localhost:45080
       - DebugMode=true
       - SEQ_URL=http://seq:5341
+      # The app and the browser must reach MinIO at the same Host for V4 signatures
+      # to verify. Add `127.0.0.1 minio` to /etc/hosts to play restricted recordings
+      # from the dev host browser; the public bucket works either way.
+      - MEDIA_URL=http://minio:9000
+      - S3_ENDPOINT=http://minio:9000
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
       - "META_DESCRIPTION=P&aring; sunneord.no kan du lytte til bibelundervisning fra for mer enn et halvt &aring;rhundre siden og til i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;"
       - "COMPANY_NAME=Foreningen Sunne ord"
       - "COMPANY_EMAIL=post@sunneord.no"
@@ -29,6 +37,34 @@ services:
       - ../lib/snd/public:/var/audio/public
       - ../lib/snd/restricted:/var/audio/restricted
       - ../custom:/var/custom
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    ports:
+      - "9000:9000"     # S3 API
+      - "9001:9001"     # MinIO console
+    volumes:
+      # Each bucket is a top-level folder under /data, so the on-disk layout matches
+      # what the app sees at /var/audio/{public,restricted}.
+      - ../lib/snd/public:/data/public
+      - ../lib/snd/restricted:/data/restricted
+
+  # One-shot: wait for MinIO, create buckets if missing, mark `public` anonymous-read.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minioadmin minioadmin >/dev/null 2>&1; do sleep 1; done;
+      mc mb --ignore-existing local/public;
+      mc mb --ignore-existing local/restricted;
+      mc anonymous set download local/public;
+      "
 
   db:
     image: mysql:8.4

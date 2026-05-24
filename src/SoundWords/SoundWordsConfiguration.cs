@@ -34,6 +34,14 @@ internal class SoundWordsConfiguration : ISoundWordsConfiguration
     public IList<string> PodcastCategories => _configuration.GetSection("PODCAST_CATEGORIES").Get<List<string>>() ?? new List<string>();
     public IList<string> PodcastSubcategories => _configuration.GetSection("PODCAST_SUBCATEGORIES").Get<List<string>>() ?? new List<string>();
 
+    public string MediaUrl => Get("MEDIA_URL") ?? SiteUrl ?? string.Empty;
+    public string? S3Endpoint => Get("S3_ENDPOINT");
+    public string? S3AccessKey => Get("S3_ACCESS_KEY");
+    public string? S3SecretKey => Get("S3_SECRET_KEY");
+    public string S3PublicBucket => Get("S3_PUBLIC_BUCKET") ?? "public";
+    public string S3RestrictedBucket => Get("S3_RESTRICTED_BUCKET") ?? "restricted";
+    public TimeSpan SignedUrlLifetime => TimeSpan.FromMinutes(_configuration.GetValue("SIGNED_URL_LIFETIME_MINUTES", 120));
+
     /// <summary>
     /// Reads a configuration value, treating an empty string as missing.
     /// Needed because docker-compose's <c>${VAR-}</c> expansion injects

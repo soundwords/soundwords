@@ -1,8 +1,11 @@
 using System.IO.Abstractions;
+using Amazon.Runtime;
+using Amazon.S3;
 using Autofac;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using SoundWords.Auth;
+using SoundWords.Media;
 using SoundWords.Models;
 using SoundWords.Social;
 using SoundWords.Tools;
@@ -29,6 +32,25 @@ public class SoundWordsModule : Module
         builder.RegisterType<RecordingRepository>().As<IRecordingRepository>().InstancePerLifetimeScope();
         builder.RegisterType<RebuildJob>().AsSelf().InstancePerDependency();
         builder.RegisterType<LegacyUserSync>().As<ILegacyUserSync>().InstancePerLifetimeScope();
+
+        builder.Register(context =>
+                         {
+                             ISoundWordsConfiguration config = context.Resolve<ISoundWordsConfiguration>();
+                             AmazonS3Config s3Config = new()
+                                                       {
+                                                           ServiceURL = config.S3Endpoint
+                                                                        ?? throw new InvalidOperationException(
+                                                                            "S3_ENDPOINT not configured."),
+                                                           ForcePathStyle = true     // MinIO path-style: /{bucket}/{key}
+                                                       };
+                             BasicAWSCredentials creds = new(
+                                 config.S3AccessKey ?? throw new InvalidOperationException("S3_ACCESS_KEY not configured."),
+                                 config.S3SecretKey ?? throw new InvalidOperationException("S3_SECRET_KEY not configured."));
+                             return new AmazonS3Client(creds, s3Config);
+                         })
+               .As<IAmazonS3>()
+               .SingleInstance();
+        builder.RegisterType<S3SignedMediaUrls>().As<ISignedMediaUrls>().SingleInstance();
 
         builder.RegisterType<FileSystem>().As<IFileSystem>().SingleInstance();
 

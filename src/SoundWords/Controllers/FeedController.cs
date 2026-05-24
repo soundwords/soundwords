@@ -5,6 +5,7 @@ using LinqToDB;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using SoundWords.Data;
+using SoundWords.Media;
 using SoundWords.Models;
 using SoundWords.Tools;
 using TagLib;
@@ -18,23 +19,29 @@ public class FeedController : SoundWordsController
     private readonly Func<string, bool, TagFile.IFileAbstraction> _fileAbstractionFactory;
     private readonly IFileSystem _fileSystem;
     private readonly ISoundWordsConfiguration _configuration;
+    private readonly ISignedMediaUrls _mediaUrls;
 
     public FeedController(Func<SoundWordsDb> dbFactory,
                           IFileSystem fileSystem,
                           Func<string, bool, TagFile.IFileAbstraction> fileAbstractionFactory,
-                          ISoundWordsConfiguration configuration)
+                          ISoundWordsConfiguration configuration,
+                          ISignedMediaUrls mediaUrls)
     {
         _dbFactory = dbFactory;
         _fileSystem = fileSystem;
         _fileAbstractionFactory = fileAbstractionFactory;
         _configuration = configuration;
+        _mediaUrls = mediaUrls;
     }
 
     [HttpGet("/feed/{**speaker}")]
     [HttpHead("/feed/{**speaker}")]
     public IActionResult Index(string? speaker)
     {
-        bool includeRestricted = IncludeRestricted;
+        // The RSS feed is consumed anonymously by aggregators (Apple Podcasts, Overcast,
+        // …) hours or days after generation, long after any cookie expires. So we ALWAYS
+        // exclude restricted recordings — enclosure URLs need to outlive the session, and
+        // the public bucket exposes only non-restricted files.
         const int limit = 50;
         XNamespace itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
         XNamespace atom = "http://www.w3.org/2005/Atom";
@@ -63,7 +70,7 @@ public class FeedController : SoundWordsController
                     join recordingSpeaker in db.RecordingSpeakers on sp.Id equals recordingSpeaker.SpeakerId
                     join recording in db.Recordings on recordingSpeaker.RecordingId equals recording.Id
                     join album in db.Albums on recording.AlbumId equals album.Id
-                    where !recording.Deleted && !sp.Deleted
+                    where !recording.Deleted && !sp.Deleted && !recording.Restricted
                     select new { Speaker = sp, Recording = recording, Album = album };
 
         if (dbSpeaker != null)
@@ -74,11 +81,6 @@ public class FeedController : SoundWordsController
         else
         {
             query = query.OrderByDescending(x => x.Recording.CreatedOn);
-        }
-
-        if (!includeRestricted)
-        {
-            query = query.Where(x => !x.Recording.Restricted);
         }
 
         var rows = query.Take(limit).ToList();
@@ -99,7 +101,7 @@ public class FeedController : SoundWordsController
             let fileInfo = _fileSystem.FileInfo.New(row.Path!)
             let titleSuffix =
                 tagInfo.Tag.TrackCount > 1 ? $" ({tagInfo.Tag.Track}/{tagInfo.Tag.TrackCount})" : string.Empty
-            let url = $"{siteUrl}/Recording/Stream/{row.Uid:N}/{fileInfo.Name.UrlEncode20()}"
+            let url = _mediaUrls.ForRecording(row)
             let guid = $"{siteUrl}/Recording/Stream/{row.Uid:N}{(speaker == null ? "/top50" : string.Empty)}"
             select new XElement("item",
                                 new XElement("title", $"{album.Name}: {row.Title}{titleSuffix}"),

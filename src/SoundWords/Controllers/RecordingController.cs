@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using SkiaSharp;
 using SoundWords.Data;
 using SoundWords.Filters;
+using SoundWords.Media;
 using SoundWords.Models;
 using SoundWords.Tools;
 
@@ -20,13 +21,15 @@ public class RecordingController : SoundWordsController
     private readonly ILogger<RecordingController> _logger;
     private readonly IRecordingRepository _recordingRepository;
     private readonly ISoundWordsConfiguration _soundWordsConfiguration;
+    private readonly ISignedMediaUrls _mediaUrls;
 
     public RecordingController(ILogger<RecordingController> logger,
                                IRecordingRepository recordingRepository,
                                ISoundWordsConfiguration soundWordsConfiguration,
                                Func<SoundWordsDb> dbFactory,
                                IFileSystem fileSystem,
-                               IBackgroundPool backgroundPool)
+                               IBackgroundPool backgroundPool,
+                               ISignedMediaUrls mediaUrls)
     {
         _logger = logger;
         _recordingRepository = recordingRepository;
@@ -34,6 +37,7 @@ public class RecordingController : SoundWordsController
         _dbFactory = dbFactory;
         _fileSystem = fileSystem;
         _backgroundPool = backgroundPool;
+        _mediaUrls = mediaUrls;
     }
 
     [HttpGet("/Recording")]
@@ -154,7 +158,8 @@ public class RecordingController : SoundWordsController
                                                        Speakers = recordingLookup[r.Recording.Id]
                                                                   .DistinctBy(rs => rs.Speaker.Id)
                                                                   .Select(rs => rs.Speaker.ToSpeakerInfo())
-                                                                  .ToList()
+                                                                  .ToList(),
+                                                       StreamUrl = _mediaUrls.ForRecording(r.Recording.ToRecording())
                                                    }).ToList(),
                         Attachments = (album.AttachmentPaths ?? new List<string>())
                                       .Select((attachment, index) => new AttachmentInfo
@@ -197,6 +202,8 @@ public class RecordingController : SoundWordsController
                                    .Concat(new[] { string.Join(" og ", speakers.Skip(speakers.Count - 2)) }));
     }
 
+    // Legacy endpoint kept for old RSS guids and external links. Media now lives on the
+    // media host, so resolve the recording and 302-redirect to a freshly-signed URL.
     [HttpGet("/Recording/Stream/{**id}")]
     [HttpHead("/Recording/Stream/{**id}")]
     public IActionResult Stream(string id)
@@ -217,8 +224,7 @@ public class RecordingController : SoundWordsController
             return Redirect("/Login".AddQueryParam("redirect", HttpContext.Request.GetEncodedUrl()));
         }
 
-        FileInfo fileInfo = new(recording.Path!);
-        return PhysicalFile(fileInfo.FullName, GetMimeType(fileInfo.Name), enableRangeProcessing: true);
+        return Redirect(_mediaUrls.ForRecording(recording));
     }
 
     [HttpGet("/Recording/Download/{uid}")]
@@ -240,8 +246,7 @@ public class RecordingController : SoundWordsController
             return Redirect("/Login".AddQueryParam("redirect", HttpContext.Request.GetEncodedUrl()));
         }
 
-        FileInfo fileInfo = new(recording.Path!);
-        return PhysicalFile(fileInfo.FullName, GetMimeType(fileInfo.Name), fileInfo.Name);
+        return Redirect(_mediaUrls.ForRecording(recording));
     }
 
     [HttpPost("/Recording/Rebuild")]

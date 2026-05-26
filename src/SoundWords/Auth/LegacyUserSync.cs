@@ -60,7 +60,8 @@ public sealed class LegacyUserSync : ILegacyUserSync
         }
         catch (Exception ex)
         {
-            _logger.LogInformation(ex, "Legacy user sync skipped — UserAuth table not present.");
+            _logger.LogInformation("Legacy user sync skipped — UserAuth table not present.");
+            _logger.LogDebug(ex, "Legacy user sync underlying exception.");
             return;
         }
 

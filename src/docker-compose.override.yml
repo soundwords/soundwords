@@ -5,14 +5,19 @@ services:
     depends_on:
       - db
       - seq
+      - minio-init
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - CONNECTION_STRING=Server=db;User=soundwords;Database=soundwords;Password=secret;
       - DB_TYPE=MySQL
       - SITE_NAME=SoundWords
       - SITE_URL=http://localhost:45080
       - DebugMode=true
       - SEQ_URL=http://seq:5341
+      # The app and the browser must reach MinIO at the same Host for V4 signatures
+      # to verify. Add `127.0.0.1 minio` to /etc/hosts to play restricted recordings
+      # from the dev host browser; the public bucket works either way.
+      - MEDIA_URL=http://minio:9000
+      - S3_ENDPOINT=http://minio:9000
       - "META_DESCRIPTION=P&aring; sunneord.no kan du lytte til bibelundervisning fra for mer enn et halvt &aring;rhundre siden og til i dag. &quot;... lik et tre, plantet ved rennende bekker.&quot;"
       - "COMPANY_NAME=Foreningen Sunne ord"
       - "COMPANY_EMAIL=post@sunneord.no"
@@ -30,13 +35,55 @@ services:
       - ../lib/snd/restricted:/var/audio/restricted
       - ../custom:/var/custom
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      # MinIO natively reads credentials from these files when the *_FILE env
+      # vars are set, keeping the root creds out of `docker inspect`.
+      - MINIO_ROOT_USER_FILE=/run/secrets/MINIO_ROOT_USER
+      - MINIO_ROOT_PASSWORD_FILE=/run/secrets/MINIO_ROOT_PASSWORD
+    secrets:
+      - MINIO_ROOT_USER
+      - MINIO_ROOT_PASSWORD
+    ports:
+      - "9000:9000"     # S3 API
+      - "9001:9001"     # MinIO console
+    volumes:
+      # Each bucket is a top-level folder under /data, so the on-disk layout matches
+      # what the app sees at /var/audio/{public,restricted}.
+      - ../lib/snd/public:/data/public
+      - ../lib/snd/restricted:/data/restricted
+
+  # One-shot: wait for MinIO, create buckets if missing, mark `public` anonymous-read.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    secrets:
+      - MINIO_ROOT_USER
+      - MINIO_ROOT_PASSWORD
+    entrypoint: >
+      /bin/sh -c "
+      USER=$$(cat /run/secrets/MINIO_ROOT_USER);
+      PASS=$$(cat /run/secrets/MINIO_ROOT_PASSWORD);
+      until mc alias set local http://minio:9000 \"$$USER\" \"$$PASS\" >/dev/null 2>&1; do sleep 1; done;
+      mc mb --ignore-existing local/public;
+      mc mb --ignore-existing local/restricted;
+      mc anonymous set download local/public;
+      "
+
   db:
     image: mysql:8.4
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=true
       - MYSQL_DATABASE=soundwords
       - MYSQL_USER=soundwords
-      - MYSQL_PASSWORD=secret
+      # MySQL's official image reads the password from this file when set,
+      # keeping it out of `docker inspect`.
+      - MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD
+    secrets:
+      - MYSQL_PASSWORD
 #    volumes:
 #      db-data:/var/lib/mysql
 
@@ -47,6 +94,34 @@ services:
     ports:
       - "45341:80"     # Seq UI
       - "5341:5341"    # Seq ingest (so `dotnet run` outside compose can post here)
+
+# In dev all secrets resolve to committed throwaway values under secrets/dev/.
+# Production deployments use the base compose's `external: true` declarations;
+# the `external: false` lines below explicitly cancel that during the merge so
+# `docker compose up` reads from the file source instead of looking up a
+# swarm-managed secret.
+secrets:
+  CONNECTION_STRING:
+    external: false
+    file: ./secrets/dev/CONNECTION_STRING
+  CONNECTION_STRING_USERS:
+    external: false
+    file: ./secrets/dev/CONNECTION_STRING_USERS
+  S3_ACCESS_KEY:
+    external: false
+    file: ./secrets/dev/S3_ACCESS_KEY
+  S3_SECRET_KEY:
+    external: false
+    file: ./secrets/dev/S3_SECRET_KEY
+  SEQ_API_KEY:
+    external: false
+    file: ./secrets/dev/SEQ_API_KEY
+  MYSQL_PASSWORD:
+    file: ./secrets/dev/MYSQL_PASSWORD
+  MINIO_ROOT_USER:
+    file: ./secrets/dev/MINIO_ROOT_USER
+  MINIO_ROOT_PASSWORD:
+    file: ./secrets/dev/MINIO_ROOT_PASSWORD
 
 #volumes:
 #  db-data:

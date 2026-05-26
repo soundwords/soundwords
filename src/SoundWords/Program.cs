@@ -18,6 +18,12 @@ using SoundWords.Tools;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// Docker secrets land at /run/secrets/<NAME>; read each as a config key so
+// production deployments can pass CONNECTION_STRING / S3_SECRET_KEY / … without
+// leaking them into env vars (and `docker inspect`). Added after the default
+// sources so it overrides them.
+builder.Configuration.AddDockerSecrets();
+
 // Surface Serilog's own diagnostics on stderr so misconfigured sinks
 // (bad SEQ_URL, 401, network errors) don't fail silently.
 Serilog.Debugging.SelfLog.Enable(Console.Error);
@@ -45,11 +51,16 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
                             }
                         });
 
-string dbType = builder.Configuration["DB_TYPE"]
-                ?? throw new InvalidOperationException("DB_TYPE not configured");
-string mainConnectionString = builder.Configuration["CONNECTION_STRING"]
-                              ?? throw new InvalidOperationException("CONNECTION_STRING not configured");
-string usersConnectionString = builder.Configuration["CONNECTION_STRING_USERS"] ?? mainConnectionString;
+string dbType = Require("DB_TYPE");
+string mainConnectionString = Require("CONNECTION_STRING");
+string usersConnectionString = builder.Configuration["CONNECTION_STRING_USERS"] is { Length: > 0 } users
+                                   ? users
+                                   : mainConnectionString;
+
+string Require(string key) =>
+    builder.Configuration[key] is { Length: > 0 } value
+        ? value
+        : throw new InvalidOperationException($"{key} not configured");
 
 builder.Services.AddLinqToDBContext<SoundWordsDb>((provider, options) =>
                                                      options.UseConnectionString(

@@ -69,10 +69,10 @@
                                         }
                                     </h5>
                                 </div>
-                                <div id="details-@albumNo-@trackNo" class="details collapse well" data-url="Recording/Stream/@track.Uid" data-speaker="@Model.Speaker" data-album-name="@album.Name" data-track="@track.Title" data-track-no="@track.Track">
+                                <div id="details-@albumNo-@trackNo" class="details collapse well" data-url="@track.StreamUrl" data-speaker="@Model.Speaker" data-album-name="@album.Name" data-track="@track.Title" data-track-no="@track.Track">
                                     <div class="player"></div>
                                     <div class="pull-right">
-                                        <a class="btn btn-xs btn-default piwik_download" href="Recording/Download/@track.Uid"><i class="fa fa-download" title="Last ned"></i> Last ned</a>
+                                        <a class="btn btn-xs btn-default piwik_download" href="@track.StreamUrl"><i class="fa fa-download" title="Last ned"></i> Last ned</a>
                                     </div>
                                     <div class="comment">
                                         &nbsp;

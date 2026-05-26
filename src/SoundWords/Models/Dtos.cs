@@ -71,6 +71,9 @@ public class RecordingInfo
     public int? Year { get; set; }
     public string? Comment { get; set; }
     public List<SpeakerInfo> Speakers { get; set; } = new();
+
+    /// <summary>Absolute URL to fetch the audio bytes (anonymous public URL or short-lived signed URL).</summary>
+    public string? StreamUrl { get; set; }
 }
 
 public class AttachmentInfo

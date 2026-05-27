@@ -60,10 +60,10 @@ public class RebuildJob : IJob<string>
                                         {
                                             if (task.Exception != null)
                                             {
-                                                AggregateException aggregateException = task.Exception.Flatten();
+                                                _logger.LogError(task.Exception.Flatten(),
+                                                                 "Rebuild job {JobId} failed", jobId);
                                                 await PublishStatus(jobId, new RebuildStatus("error",
-                                                                                             $"An error occurred: {aggregateException}"));
-                                                _logger.LogError(aggregateException, "An error occurred");
+                                                                                             "Rebuild failed. See server logs for details."));
                                             }
                                         });
     }

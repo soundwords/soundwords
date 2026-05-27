@@ -50,8 +50,11 @@ public class SoundWordsDb : DataConnection
     private static MappingSchema BuildMappingSchema()
     {
         MappingSchema schema = new();
-        schema.SetConverter<List<string>?, string?>(SerializeStringList);
-        schema.SetConverter<string?, List<string>?>(DeserializeStringList);
+        new FluentMappingBuilder(schema)
+            .Entity<DbAlbum>()
+            .Property(e => e.AttachmentPaths)
+            .HasConversion(v => SerializeStringList(v), v => DeserializeStringList(v))
+            .Build();
         return schema;
     }
 

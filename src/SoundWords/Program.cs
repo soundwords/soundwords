@@ -15,6 +15,7 @@ using SoundWords.Auth;
 using SoundWords.Data;
 using SoundWords.Hubs;
 using SoundWords.Tools;
+using WebOptimizer;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -103,6 +104,38 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddMemoryCache();
 builder.Services.AddSignalR();
 
+bool minify = !builder.Environment.IsDevelopment();
+builder.Services.AddWebOptimizer((IAssetPipeline pipeline) =>
+                                 {
+                                     AddCss("/css/site.min.css", "css/site.css");
+                                     AddCss("/css/vendor.min.css",
+                                            "lib/roboto-fontface/css/roboto/roboto-fontface.css",
+                                            "lib/@fontsource/open-sans/300.css");
+                                     AddCss("/css/bootstrap-day.min.css", "css/bootstrap-day.css");
+                                     AddCss("/css/bootstrap-night.min.css", "css/bootstrap-night.css");
+                                     AddJs("/js/site.min.js", "js/site.js");
+                                     AddJs("/js/vendor.min.js", "lib/js-cookie/dist/js.cookie.js");
+
+                                     void AddCss(string route, params string[] sources)
+                                     {
+                                         IAsset asset = pipeline.AddBundle(route, "text/css; charset=UTF-8", sources)
+                                                                .EnforceFileExtensions(".css")
+                                                                .AdjustRelativePaths()
+                                                                .Concatenate()
+                                                                .FingerprintUrls();
+                                         if (minify) asset.MinifyCss();
+                                     }
+
+                                     void AddJs(string route, params string[] sources)
+                                     {
+                                         IAsset asset = pipeline.AddBundle(route, "text/javascript; charset=UTF-8",
+                                                                           sources)
+                                                                .EnforceFileExtensions(".js")
+                                                                .Concatenate();
+                                         if (minify) asset.MinifyJavaScript();
+                                     }
+                                 });
+
 builder.Services.AddMvc();
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
@@ -145,6 +178,7 @@ else
 }
 
 app.UseSerilogRequestLogging();
+app.UseWebOptimizer();
 app.UseStaticFiles();
 
 // Mount {CUSTOM_FOLDER}/content at /content — mirrors the FileSystemMapping

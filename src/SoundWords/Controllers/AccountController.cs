@@ -42,12 +42,12 @@ public class AccountController : SoundWordsController
                        : View(model);
         }
 
-        // The ss-utils.js modal reloads on a 2xx response; a 302 would leave the
-        // modal stuck open. Return 200 for XHR callers and the normal redirect
-        // for full-page form posts.
+        // XHR callers (the inline login modal) reload the page themselves on a
+        // 2xx response; a 302 would leave the modal stuck open. Return 200 for
+        // XHR callers and the normal redirect for full-page form posts.
         return IsXhr()
                    ? Ok(new { userName = model.UserName })
-                   : RedirectToLocal(model.ReturnUrl ?? model.Continue);
+                   : RedirectToLocal(model.ReturnUrl);
     }
 
     private bool IsXhr() =>
@@ -75,7 +75,7 @@ public class AccountController : SoundWordsController
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return IsXhr() ? BadRequest(SerializeModelStateErrors()) : View(model);
         }
 
         string[] nameParts = model.DisplayName.Split(' ');
@@ -99,11 +99,13 @@ public class AccountController : SoundWordsController
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return View(model);
+            return IsXhr() ? BadRequest(SerializeModelStateErrors()) : View(model);
         }
 
         await _signInManager.SignInAsync(user, isPersistent: false);
-        return RedirectToLocal(model.ReturnUrl);
+        return IsXhr()
+                   ? Ok(new { userName = user.UserName })
+                   : RedirectToLocal(model.ReturnUrl);
     }
 
     [HttpPost("/Account/Logout")]

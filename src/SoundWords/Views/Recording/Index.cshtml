@@ -75,45 +75,34 @@
     {
     <environment names="Development">
         <script src="~/lib/mediaelement/build/mediaelement-and-player.js"></script>
+        <script src="~/lib/microsoft-signalr/dist/browser/signalr.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="~/lib/mediaelement/build/mediaelement-and-player.min.js"></script>
+        <script src="~/lib/microsoft-signalr/dist/browser/signalr.min.js"></script>
     </environment>
     <script type="text/javascript">
         $().ready(function () {
-            var activeSub;
-            var source = new EventSource('event-stream?channel=refresh&t=' + new Date().getTime());
-            $(source).handleServerEvents({
-                handlers: {
-                    onConnect: function (subscription) {
-                        activeSub = subscription;
-                        console.log("Subscribed");
-                    },
-                    onJoin: function (user) {
-                        console.log("Welcome, " + user.displayName);
-                    },
-                    onLeave: function (user) {
-                        console.log(user.displayName + " #" + user.userId + ": has left the building");
-                    },
-                    status: function(message) {
-                        $("#status").html(message.text);
-                        if (message.id === "finished") {
-                            $("#rebuild").removeClass('disabled');
-                        }
-                    },
-                    progress: function (message) {
-                        console.log('Progress ' + message.progress);
-                        var progressPercent = message.progress + '%';
-                        $("#progress-bar").css('width', progressPercent).attr('aria-valuenow', message.progress);
-                        $("#progress-text").html(progressPercent);
-                    },
-                },
-                receivers: {
-                    //... Register any receivers
-                },
-                success: function (selector, msg, json) { // fired after every message
-                    console.log(selector, msg, json);
-                },
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl('hubs/rebuild')
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on('status', function (message) {
+                $("#status").html(message.text);
+                if (message.code === "finished") {
+                    $("#rebuild").removeClass('disabled');
+                }
+            });
+
+            connection.on('progress', function (message) {
+                var progressPercent = message.progress + '%';
+                $("#progress-bar").css('width', progressPercent).attr('aria-valuenow', message.progress);
+                $("#progress-text").html(progressPercent);
+            });
+
+            var hubReady = connection.start().catch(function (err) {
+                console.error('SignalR connection failed', err);
             });
 
             $("#rebuild").click(function(event) {
@@ -121,14 +110,17 @@
 
                 $('#rebuild').addClass('disabled');
 
-                $.post('Recording/Rebuild', { from: activeSub.id }, function() {
-                }).fail(function (e) {
-                    if (e.responseJSON && e.responseJSON.responseStatus)
-                        console.log(e.responseJSON.responseStatus.message);
-                    $("#rebuild").removeClass('disabled');
-                });
+                var jobId = (window.crypto && window.crypto.randomUUID)
+                    ? window.crypto.randomUUID().replace(/-/g, '')
+                    : Date.now().toString(36) + Math.random().toString(36).slice(2);
 
-
+                hubReady
+                    .then(function () { return connection.invoke('JoinJob', jobId); })
+                    .then(function () { return $.post('Recording/Rebuild?jobId=' + encodeURIComponent(jobId)); })
+                    .catch(function (e) {
+                        console.error(e);
+                        $("#rebuild").removeClass('disabled');
+                    });
             });
 
             $('.audiofile').click(function (event) {

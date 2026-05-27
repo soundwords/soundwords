@@ -42,9 +42,4 @@ public class LoginRequest
     public bool RememberMe { get; set; }
 
     public string? ReturnUrl { get; set; }
-
-    /// <summary>
-    /// Alias used by the legacy ss-utils.js login modal.
-    /// </summary>
-    public string? Continue { get; set; }
 }
